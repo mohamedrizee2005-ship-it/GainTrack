@@ -69,6 +69,7 @@ class HomeViewModel(
         val weeklyCompletion = (completedCount.toFloat() / currentProfile.workoutFrequency.coerceAtLeast(1) * 100).toInt().coerceAtMost(100)
 
         val weightDelta = calculateWeeklyWeightDelta(weightLogs)
+        val quoteIndex = ((System.currentTimeMillis() / (1000L * 60 * 60 * 6)) % motivationalQuotes.size.toLong()).toInt().coerceIn(0, motivationalQuotes.size - 1)
 
         HomeUiState(
             userProfile = currentProfile,
@@ -81,7 +82,7 @@ class HomeViewModel(
             todayProtein = totalProtein,
             weightChangeSinceLastWeek = weightDelta,
             nextCheckInDateText = getNextSundayDateString(),
-            motivationalQuote = motivationalQuotes[(System.currentTimeMillis() / (1000 * 60 * 60 * 6)) % motivationalQuotes.size.toInt()]
+            motivationalQuote = motivationalQuotes[quoteIndex]
         )
     }.stateIn(
         scope = viewModelScope,

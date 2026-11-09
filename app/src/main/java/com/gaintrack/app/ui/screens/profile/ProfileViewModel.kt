@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -41,19 +42,13 @@ class ProfileViewModel(
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
-    val uiState: StateFlow<ProfileUiState> = userRepository.userProfile.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = UserProfileEntity()
-    ).let { flow ->
-        MutableStateFlow(ProfileUiState()).apply {
-            viewModelScope.launch {
-                flow.collect { p ->
-                    value = ProfileUiState(profile = p ?: UserProfileEntity())
-                }
-            }
-        }
-    }
+    val uiState: StateFlow<ProfileUiState> = userRepository.userProfile
+        .map { ProfileUiState(profile = it ?: UserProfileEntity()) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ProfileUiState()
+        )
 
     fun updateProfile(
         currentWeight: Double,

@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -40,14 +39,23 @@ class NutritionViewModel(
     val uiState: StateFlow<NutritionUiState> = combine(
         userRepository.userProfile,
         nutritionRepository.getMealsForDate(todayDate),
-        _searchQuery.flatMapLatest { nutritionRepository.searchFood(it) }
-    ) { profile, meals, foods ->
+        nutritionRepository.allFoodItems,
+        _searchQuery
+    ) { profile, meals, allFoods, query ->
         val userProf = profile ?: UserProfileEntity()
         val totalCals = meals.sumOf { it.calories }
         val totalProt = meals.sumOf { it.proteinGrams }
 
         val remCals = (userProf.calorieTarget - totalCals).coerceAtLeast(0)
         val remProt = (userProf.proteinTarget - totalProt).coerceAtLeast(0.0)
+
+        val filtered = if (query.isBlank()) {
+            allFoods
+        } else {
+            allFoods.filter {
+                it.name.contains(query, ignoreCase = true) || it.category.contains(query, ignoreCase = true)
+            }
+        }
 
         NutritionUiState(
             userProfile = userProf,
@@ -56,8 +64,8 @@ class NutritionViewModel(
             todayProtein = totalProt,
             remainingCalories = remCals,
             remainingProtein = remProt,
-            searchedFoods = foods,
-            searchQuery = _searchQuery.value
+            searchedFoods = filtered,
+            searchQuery = query
         )
     }.stateIn(
         scope = viewModelScope,
