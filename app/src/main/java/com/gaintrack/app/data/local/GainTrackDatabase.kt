@@ -34,7 +34,7 @@ import kotlinx.coroutines.launch
         WeightLogEntity::class,
         WeeklyCheckInEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class GainTrackDatabase : RoomDatabase() {
@@ -45,6 +45,13 @@ abstract class GainTrackDatabase : RoomDatabase() {
     abstract fun weightDao(): WeightDao
 
     companion object {
+        private val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE meal_logs ADD COLUMN carbsGrams REAL NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE meal_logs ADD COLUMN fatGrams REAL NOT NULL DEFAULT 0")
+            }
+        }
+
         @Volatile
         private var INSTANCE: GainTrackDatabase? = null
 
@@ -56,6 +63,7 @@ abstract class GainTrackDatabase : RoomDatabase() {
                     "gaintrack_database"
                 )
                     .addCallback(DatabaseCallback(scope))
+                    .addMigrations(MIGRATION_1_2)
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
