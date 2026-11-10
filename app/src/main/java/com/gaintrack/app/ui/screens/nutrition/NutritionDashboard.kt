@@ -83,11 +83,13 @@ fun NutritionDashboard(app: GainTrackApp) {
             app.nutritionRepository.logMeal(mealType = mealType, foodName = item.name + " (" + item.portion + ")",
                 servings = 1.0, calories = item.kcal, proteinGrams = item.protein, carbsGrams = item.carbs, fatGrams = item.fat)
             estimate = null
+            clarification = ""
             ingredients = ""
             status = "Saved to today's food diary."
         }
     }
     fun analyse(bitmap: Bitmap) {
+        lastBitmap = bitmap
         if (apiKey.isBlank()) { status = "Add your Gemini API key in AI Settings to analyse photos. Manual logging is free."; settings = true; return }
         busy = true
         status = "Analysing food photo…"
@@ -95,7 +97,9 @@ fun NutritionDashboard(app: GainTrackApp) {
             try {
                 val result = withContext(Dispatchers.IO) {
                     val stream = ByteArrayOutputStream()
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 82, stream)
+                    val scale = minOf(1f, 1200f / maxOf(bitmap.width, bitmap.height))
+                    val uploadBitmap = if (scale < 1f) Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true) else bitmap
+                    uploadBitmap.compress(Bitmap.CompressFormat.JPEG, 82, stream)
                     val encoded = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
                     val prompt = """You estimate nutrition for Sri Lankan food photos. Identify visible foods and estimate edible portions. Optional ingredients: ${ingredients.ifBlank { "not provided" }}. Portion hint: $portion. User clarification: $clarification. Return ONLY JSON keys food_name, portion, calories, protein_g, carbs_g, fat_g, uncertainty_note, clarifying_question. If a key ingredient or portion is important and cannot be inferred, ask one short clarifying question; otherwise return an empty clarifying_question. Use reasonable food-composition estimates. Do not claim exactness. If milk powder, sugar, oil or hidden ingredients cannot be seen, state uncertainty and give a broad estimate."""
                     val parts = JSONArray().put(JSONObject().put("text", prompt))
