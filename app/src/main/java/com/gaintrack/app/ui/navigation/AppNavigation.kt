@@ -7,6 +7,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import com.gaintrack.app.GainTrackApp
 import com.gaintrack.app.ui.screens.nutrition.NutritionDashboard
