@@ -55,7 +55,6 @@ private fun foodToday() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(
 fun NutritionDashboard(app: GainTrackApp) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val prefs = remember { context.getSharedPreferences("gaintrack_ai_food", 0) }
     val meals by app.nutritionRepository.getMealsForDate(foodToday()).collectAsState(initial = emptyList())
     val profile by app.userRepository.userProfile.collectAsState(initial = null)
     val calorieTarget = profile?.calorieTarget ?: 2100
@@ -67,7 +66,7 @@ fun NutritionDashboard(app: GainTrackApp) {
     var mealType by remember { mutableStateOf("Lunch") }
     var portion by remember { mutableStateOf("Medium serving") }
     var ingredients by remember { mutableStateOf("") }
-    var apiKey by remember { mutableStateOf(prefs.getString("gemini_key", "") ?: "") }
+    var apiKey by remember { mutableStateOf("") }
     var settings by remember { mutableStateOf(false) }
     var manual by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
@@ -123,7 +122,7 @@ fun NutritionDashboard(app: GainTrackApp) {
         }
     }
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let { val bmp = context.contentResolver.openInputStream(it)?.use(BitmapFactory::decodeStream); if (bmp != null) analyse(bmp) else status = "Could not read image." }
+        uri?.let { val bmp = context.contentResolver.openInputStream(it)?.use { stream -> BitmapFactory.decodeStream(stream) }; if (bmp != null) analyse(bmp) else status = "Could not read image." }
     }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bmp -> if (bmp != null) analyse(bmp) }
 
@@ -194,8 +193,8 @@ fun NutritionDashboard(app: GainTrackApp) {
         }
     }
     if(settings) AlertDialog(onDismissRequest={settings=false},containerColor=NP,title={Text("Gemini AI setup",color=NT)},
-        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){Text("Add your own Gemini API key. Manual logging works without it. A key stored in an APK is not fully secret; use this only for your personal build and do not share the APK.",color=NM,fontSize=12.sp);OutlinedTextField(value=apiKey,onValueChange={apiKey=it},label={Text("Gemini API key")},modifier=Modifier.fillMaxWidth(),singleLine=true);Text("Free-tier limits and Google's data-use terms apply.",color=NM,fontSize=11.sp)}},
-        confirmButton={TextButton(onClick={prefs.edit().putString("gemini_key",apiKey.trim()).apply();settings=false}){Text("Save",color=NG)}},
+        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){Text("Enter your Gemini API key for this app session. It stays in memory and is not saved. You will need to enter it again after closing the app. Manual logging works without it.",color=NM,fontSize=12.sp);OutlinedTextField(value=apiKey,onValueChange={apiKey=it},label={Text("Gemini API key")},modifier=Modifier.fillMaxWidth(),singleLine=true);Text("Free-tier limits and Google's data-use terms apply.",color=NM,fontSize=11.sp)}},
+        confirmButton={TextButton(onClick={settings=false}){Text("Continue",color=NG)}},
         dismissButton={TextButton(onClick={settings=false}){Text("Cancel")}})
     if(manual) AlertDialog(onDismissRequest={manual=false},containerColor=NP,title={Text("Add food manually",color=NT)},
         text={Column(verticalArrangement=Arrangement.spacedBy(6.dp)){
