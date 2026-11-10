@@ -43,7 +43,7 @@ jobs:
       - name: Upload APK as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GainTrack-v2.0.0-Debug-APK
+          name: GainTrack-v2.1.0-Debug-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
@@ -51,10 +51,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v2.0.0
-          name: "GainTrack v2.0.0 (Personal Bodyweight Workout APK)"
+          tag_name: v2.1.0
+          name: "GainTrack v2.1.0 (Workout + Nutrition APK)"
           body: |
-            ## GainTrack 2.0 – Personal Bodyweight Workout
+            ## GainTrack 2.1 – Workout + Nutrition Coach
 
             ### 📱 Installation Instructions for Samsung Galaxy A15:
             1. Download the `app-debug.apk` file attached below directly to your Samsung phone.
@@ -64,10 +64,12 @@ jobs:
 
             ### Features in this release:
             - **Personalized Profile**: 47 kg baseline, 55 kg goal, BMI 16.7 with safe progress guidance.
-            - **4-Day Home Workout System**: Chest/Shoulders/Triceps, Legs/Core, Back/Biceps, Full Body with progressive backpack loading.
+            - **5-Day Home Workout System**: Personalized no-equipment training with extra chest, shoulders, arms and forearms emphasis.
             - **Active Workout Execution**: Interactive set logger, rest countdown timer, form & safety reminders.
-            - **Sri Lankan Food Tracker**: Preloaded with rice, dhal, chicken, fish ambul thiyal, milk, peanuts, and 1-tap weight-gain shake (+580 kcal).
-            - **Progress & Analytics**: Canvas weight trend chart, weekly consistency bars, 12-week 3-phase journey.
+            - **Nutrition Dashboard**: Daily calorie and protein tracking, meal diary, manual entries, and Sri Lankan food logging.
+            - **AI Food Camera**: Optional Gemini photo estimates with portion and ingredient notes. Requires the user’s own API key; photo estimates are not exact.
+            - **Daily Food Coach**: Practical calorie/protein guidance and balanced meal suggestions.
+            - **Progress & Analytics**: Workout completion and nutrition totals.
             - **Local Notifications**: Configurable evening workout reminder (7:30 PM), Sunday check-in (7:00 PM), and nutrition reminders.
           files: app/build/outputs/apk/debug/app-debug.apk
         env:
