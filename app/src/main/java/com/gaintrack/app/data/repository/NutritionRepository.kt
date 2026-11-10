@@ -39,7 +39,9 @@ class NutritionRepository(private val nutritionDao: NutritionDao) {
         foodName: String,
         servings: Double,
         calories: Int,
-        proteinGrams: Double
+        proteinGrams: Double,
+        carbsGrams: Double = 0.0,
+        fatGrams: Double = 0.0
     ): Long {
         val meal = MealLogEntity(
             dateString = dateString,
@@ -48,6 +50,8 @@ class NutritionRepository(private val nutritionDao: NutritionDao) {
             servings = servings,
             calories = calories,
             proteinGrams = proteinGrams,
+            carbsGrams = carbsGrams,
+            fatGrams = fatGrams,
             timestampEpochMs = System.currentTimeMillis()
         )
         return nutritionDao.insertMeal(meal)
