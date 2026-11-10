@@ -178,6 +178,11 @@ fun NutritionDashboard(app: GainTrackApp) {
                         Text(e.name,color=NT,fontSize=19.sp,fontWeight=FontWeight.Bold); Text(e.portion,color=NM)
                         Text("${e.kcal} kcal  •  Protein ${"%.1f".format(e.protein)} g  •  Carbs ${"%.1f".format(e.carbs)} g  •  Fat ${"%.1f".format(e.fat)} g",color=NT)
                         Text(e.note,color=NM,fontSize=12.sp)
+                        if (e.question.isNotBlank()) {
+                            Text("Quick question: " + e.question,color=NA,fontWeight=FontWeight.SemiBold,fontSize=13.sp)
+                            OutlinedTextField(value=clarification,onValueChange={clarification=it},label={Text("Your answer (optional)")},modifier=Modifier.fillMaxWidth())
+                            TextButton(onClick={lastBitmap?.let { ingredients = (ingredients + " " + clarification).trim(); clarification = ""; analyse(it) }}) { Text("Update estimate with my answer",color=NG) }
+                        }
                         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                             Button(onClick={save(e)},modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=NG,contentColor=NB)){Text("Add to diary")}
                             OutlinedButton(onClick={estimate=null}){Text("Discard")}
