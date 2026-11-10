@@ -43,7 +43,7 @@ jobs:
       - name: Upload APK as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: GainTrack-v1.0.0-Debug-APK
+          name: GainTrack-v2.0.0-Debug-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
@@ -51,10 +51,10 @@ jobs:
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: "GainTrack v1.0.0 (Installable Android APK)"
+          tag_name: v2.0.0
+          name: "GainTrack v2.0.0 (Personal Bodyweight Workout APK)"
           body: |
-            ## GainTrack – Muscle & Weight Gain Tracker v1.0.0
+            ## GainTrack 2.0 – Personal Bodyweight Workout
 
             ### 📱 Installation Instructions for Samsung Galaxy A15:
             1. Download the `app-debug.apk` file attached below directly to your Samsung phone.
