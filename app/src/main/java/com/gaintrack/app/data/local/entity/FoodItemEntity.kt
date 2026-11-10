@@ -1,5 +1,6 @@
 package com.gaintrack.app.data.local.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -24,6 +25,6 @@ data class MealLogEntity(
     val calories: Int,
     val proteinGrams: Double,
     val timestampEpochMs: Long = System.currentTimeMillis(),
-    val carbsGrams: Double = 0.0,
-    val fatGrams: Double = 0.0
+    @ColumnInfo(defaultValue = "0.0") val carbsGrams: Double = 0.0,
+    @ColumnInfo(defaultValue = "0.0") val fatGrams: Double = 0.0
 )
