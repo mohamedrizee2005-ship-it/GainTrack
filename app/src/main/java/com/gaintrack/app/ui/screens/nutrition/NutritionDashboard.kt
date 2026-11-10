@@ -76,7 +76,9 @@ fun NutritionDashboard(app: GainTrackApp) {
     var f by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var estimate by remember { mutableStateOf<Estimate?>(null) }\n    var lastBitmap by remember { mutableStateOf<Bitmap?>(null) }\n    var clarification by remember { mutableStateOf("") }
+    var estimate by remember { mutableStateOf<Estimate?>(null) }
+    var lastBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var clarification by remember { mutableStateOf("") }
 
     fun save(item: Estimate) {
         scope.launch {
