@@ -47,7 +47,7 @@ abstract class GainTrackDatabase : RoomDatabase() {
     companion object {
         private val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                database.execSQL("ALTER TABLE meal_logs ADD COLUMN carbsGrams REAL NOT NULL DEFAULT 0")
+                database.execSQL("ALTER TABLE meal_logs ADD COLUMN carbsGrams REAL NOT NULL DEFAULT 0.0")
                 database.execSQL("ALTER TABLE meal_logs ADD COLUMN fatGrams REAL NOT NULL DEFAULT 0")
             }
         }
