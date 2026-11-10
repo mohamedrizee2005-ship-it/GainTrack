@@ -203,7 +203,7 @@ fun NutritionDashboard(app: GainTrackApp) {
     }
     if(settings) AlertDialog(onDismissRequest={settings=false},containerColor=NP,title={Text("Gemini AI setup",color=NT)},
         text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){Text("Enter your Gemini API key for this app session. It stays in memory and is not saved. You will need to enter it again after closing the app. Manual logging works without it.",color=NM,fontSize=12.sp);OutlinedTextField(value=apiKey,onValueChange={apiKey=it},label={Text("Gemini API key")},modifier=Modifier.fillMaxWidth(),singleLine=true);Text("Free-tier limits and Google's data-use terms apply.",color=NM,fontSize=11.sp)}},
-        confirmButton={TextButton(onClick={settings=false}){Text("Continue",color=NG)}},
+        confirmButton={TextButton(onClick={settings=false;lastBitmap?.let { analyse(it) }}){Text("Analyse photo",color=NG)}},
         dismissButton={TextButton(onClick={settings=false}){Text("Cancel")}})
     if(manual) AlertDialog(onDismissRequest={manual=false},containerColor=NP,title={Text("Add food manually",color=NT)},
         text={Column(verticalArrangement=Arrangement.spacedBy(6.dp)){
