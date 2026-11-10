@@ -67,7 +67,7 @@ jobs:
             - **5-Day Home Workout System**: Personalized no-equipment training with extra chest, shoulders, arms and forearms emphasis.
             - **Active Workout Execution**: Interactive set logger, rest countdown timer, form & safety reminders.
             - **Nutrition Dashboard**: Daily calorie and protein tracking, meal diary, manual entries, and Sri Lankan food logging.
-            - **AI Food Camera**: Optional Gemini photo estimates with portion and ingredient notes. Requires the user’s own API key; photo estimates are not exact.
+            - **AI Food Camera**: Optional Gemini photo estimates with portion and ingredient notes. Requires the user’s own Gemini API key; the key is session-only and photo estimates are approximate.
             - **Daily Food Coach**: Practical calorie/protein guidance and balanced meal suggestions.
             - **Progress & Analytics**: Workout completion and nutrition totals.
             - **Local Notifications**: Configurable evening workout reminder (7:30 PM), Sunday check-in (7:00 PM), and nutrition reminders.
