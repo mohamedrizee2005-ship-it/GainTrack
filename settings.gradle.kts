@@ -20,4 +20,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "GainTrack"
-include(":app")
+include(":app", ":nutrisnap")
