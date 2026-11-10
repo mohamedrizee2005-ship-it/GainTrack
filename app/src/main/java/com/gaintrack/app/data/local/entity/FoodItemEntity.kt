@@ -23,5 +23,7 @@ data class MealLogEntity(
     val servings: Double,
     val calories: Int,
     val proteinGrams: Double,
-    val timestampEpochMs: Long = System.currentTimeMillis()
+    val timestampEpochMs: Long = System.currentTimeMillis(),
+    val carbsGrams: Double = 0.0,
+    val fatGrams: Double = 0.0
 )
