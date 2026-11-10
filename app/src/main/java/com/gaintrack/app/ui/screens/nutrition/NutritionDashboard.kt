@@ -108,14 +108,29 @@ fun NutritionDashboard(app: GainTrackApp) {
                         .put(JSONObject().put("inline_data", JSONObject().put("mime_type", "image/jpeg").put("data", encoded)))
                     val body = JSONObject().put("contents", JSONArray().put(JSONObject().put("parts", parts)))
                         .put("generationConfig", JSONObject().put("temperature", 0.2).put("responseMimeType", "application/json"))
-                    val conn = URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey.trim()).openConnection() as HttpURLConnection
-                    conn.requestMethod = "POST"; conn.connectTimeout = 20000; conn.readTimeout = 30000; conn.doOutput = true
+                    val conn = URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent").openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"; conn.connectTimeout = 20000; conn.readTimeout = 45000; conn.doOutput = true
                     conn.setRequestProperty("Content-Type", "application/json")
+                    conn.setRequestProperty("x-goog-api-key", apiKey.trim())
                     conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
                     val code = conn.responseCode
-                    val response = (if (code in 200..299) conn.inputStream else conn.errorStream).bufferedReader().use { it.readText() }
+                    val response = (if (code in 200..299) conn.inputStream else conn.errorStream)
+                        ?.bufferedReader()?.use { it.readText() }.orEmpty()
                     conn.disconnect()
-                    if (code !in 200..299) error("Gemini API error $code. Check your key and free-tier quota.")
+                    if (code !in 200..299) {
+                        val googleMessage = try {
+                            JSONObject(response).optJSONObject("error")?.optString("message").orEmpty()
+                        } catch (_: Exception) { "" }
+                        val detail = googleMessage.ifBlank {
+                            when (code) {
+                                400, 403 -> "Check that this is a valid Gemini API key with Generative Language API access."
+                                404 -> "The selected Gemini model or API endpoint was not found. The app now uses gemini-3.5-flash."
+                                429 -> "Gemini free-tier quota or rate limit reached. Check your project usage in Google AI Studio."
+                                else -> "Please try again later."
+                            }
+                        }
+                        error("Gemini API error $code: $detail")
+                    }
                     val answer = JSONObject(response).getJSONArray("candidates").getJSONObject(0).getJSONObject("content").getJSONArray("parts").getJSONObject(0).getString("text")
                     val json = JSONObject(answer.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim())
                     Estimate(json.optString("food_name","Food"),json.optString("portion","Estimated serving"),json.optInt("calories",0),
