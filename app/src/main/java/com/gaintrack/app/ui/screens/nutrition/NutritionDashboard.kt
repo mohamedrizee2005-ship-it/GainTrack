@@ -188,7 +188,7 @@ fun NutritionDashboard(app: GainTrackApp) {
             item { Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceBetween,verticalAlignment=Alignment.CenterVertically){ Text("TODAY'S FOOD DIARY",color=NT,fontWeight=FontWeight.Bold); TextButton(onClick={manual=true}){Text("+ Add manually",color=NG)} } }
             if (meals.isEmpty()) item { Text("No meals logged yet. Capture your first meal or add it manually.",color=NM) }
             items(meals,key={it.id}) { meal -> MealItem(meal){ scope.launch { app.nutritionRepository.deleteMeal(meal) } } }
-            item { CoachAdvice(total,calorieTarget,protein,proteinTarget) }
+            item { CoachAdvice(meals,total,calorieTarget,protein,proteinTarget) }
             item { Text("Photo estimates are approximate. Oil, ingredients and portion sizes can change calories. Review before saving.",color=NM,fontSize=11.sp) }
         }
     }
@@ -215,8 +215,11 @@ fun NutritionDashboard(app: GainTrackApp) {
         IconButton(onClick=onDelete){Icon(Icons.Default.Delete,null,tint=NM)}
     }}
 }
-@Composable private fun CoachAdvice(total:Int,target:Int,protein:Double,proteinTarget:Int){
+@Composable private fun CoachAdvice(meals:List<MealLogEntity>,total:Int,target:Int,protein:Double,proteinTarget:Int){
     val remain=(target-total).coerceAtLeast(0);val pleft=(proteinTarget-protein).coerceAtLeast(0.0)
-    val advice=when{total>target+500->"You are above today's estimated target. No need to skip meals; return to your usual balanced eating pattern.";pleft>25&&remain>250->"Consider eggs, milk, dhal, chickpeas, fish or curd for protein, with rice, oats or banana for energy.";remain>450->"You still have energy to add today. Try rice with dhal and egg, milk with banana, or chickpeas.";pleft>10->"Protein is a little short. Consider milk, eggs, fish, chicken, dhal or green gram.";else->"Nice work logging your food. Keep meals varied and aim for steady progress, not perfection."}
+    val names=meals.joinToString(" ") { it.foodName }.lowercase()
+    val treat=listOf("soft drink","soda","sweet drink","cake","biscuits","chocolate","short eats","roll","pastry","fried","chips","fries").any { it in names }
+    val base=when{total>target+500->"You are above today's estimated target. No need to skip meals; return to your usual balanced eating pattern.";pleft>25&&remain>250->"Consider eggs, milk, dhal, chickpeas, fish or curd for protein, with rice, oats or banana for energy.";remain>450->"You still have energy to add today. Try rice with dhal and egg, milk with banana, or chickpeas.";pleft>10->"Protein is a little short. Consider milk, eggs, fish, chicken, dhal or green gram.";else->"Nice work logging your food. Keep meals varied and aim for steady progress, not perfection."}
+    val advice=if(treat) "A treat or fried/sugary food is okay sometimes. For your next meal, balance it with protein, vegetables and fruit; choose eggs, dhal, fish, chickpeas or plain milk more often. " + base else base
     Card(colors=CardDefaults.cardColors(containerColor=Color(0xFF172B2A)),shape=RoundedCornerShape(17.dp)){Column(Modifier.padding(15.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){Text("YOUR DAILY COACH",color=NG,fontWeight=FontWeight.Bold,fontSize=11.sp);Text(advice,color=NT,fontSize=14.sp);Text("General guidance based on your logged estimates and profile targets, not medical advice.",color=NM,fontSize=10.sp)}}
 }
