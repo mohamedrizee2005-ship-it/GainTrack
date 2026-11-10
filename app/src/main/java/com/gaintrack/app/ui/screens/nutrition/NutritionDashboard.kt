@@ -48,7 +48,7 @@ private val NM = Color(0xFF9AA8BA)
 private val NG = Color(0xFFB7F36B)
 private val NA = Color(0xFF55D6C2)
 
-private data class Estimate(val name:String,val portion:String,val kcal:Int,val protein:Double,val carbs:Double,val fat:Double,val note:String)
+private data class Estimate(val name:String,val portion:String,val kcal:Int,val protein:Double,val carbs:Double,val fat:Double,val note:String,val question:String = "")
 private fun foodToday() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
 @Composable
@@ -76,7 +76,7 @@ fun NutritionDashboard(app: GainTrackApp) {
     var f by remember { mutableStateOf("") }
     var status by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
-    var estimate by remember { mutableStateOf<Estimate?>(null) }
+    var estimate by remember { mutableStateOf<Estimate?>(null) }\n    var lastBitmap by remember { mutableStateOf<Bitmap?>(null) }\n    var clarification by remember { mutableStateOf("") }
 
     fun save(item: Estimate) {
         scope.launch {
@@ -97,7 +97,7 @@ fun NutritionDashboard(app: GainTrackApp) {
                     val stream = ByteArrayOutputStream()
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 82, stream)
                     val encoded = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
-                    val prompt = """You estimate nutrition for Sri Lankan food photos. Identify visible foods and estimate edible portions. Optional ingredients: ${ingredients.ifBlank { "not provided" }}. Portion hint: $portion. Return ONLY JSON keys food_name, portion, calories, protein_g, carbs_g, fat_g, uncertainty_note. Use reasonable food-composition estimates. Do not claim exactness. If milk powder, sugar, oil or hidden ingredients cannot be seen, state uncertainty and give a broad estimate."""
+                    val prompt = """You estimate nutrition for Sri Lankan food photos. Identify visible foods and estimate edible portions. Optional ingredients: ${ingredients.ifBlank { "not provided" }}. Portion hint: $portion. User clarification: $clarification. Return ONLY JSON keys food_name, portion, calories, protein_g, carbs_g, fat_g, uncertainty_note, clarifying_question. If a key ingredient or portion is important and cannot be inferred, ask one short clarifying question; otherwise return an empty clarifying_question. Use reasonable food-composition estimates. Do not claim exactness. If milk powder, sugar, oil or hidden ingredients cannot be seen, state uncertainty and give a broad estimate."""
                     val parts = JSONArray().put(JSONObject().put("text", prompt))
                         .put(JSONObject().put("inline_data", JSONObject().put("mime_type", "image/jpeg").put("data", encoded)))
                     val body = JSONObject().put("contents", JSONArray().put(JSONObject().put("parts", parts)))
@@ -113,7 +113,7 @@ fun NutritionDashboard(app: GainTrackApp) {
                     val answer = JSONObject(response).getJSONArray("candidates").getJSONObject(0).getJSONObject("content").getJSONArray("parts").getJSONObject(0).getString("text")
                     val json = JSONObject(answer.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim())
                     Estimate(json.optString("food_name","Food"),json.optString("portion","Estimated serving"),json.optInt("calories",0),
-                        json.optDouble("protein_g",0.0),json.optDouble("carbs_g",0.0),json.optDouble("fat_g",0.0),json.optString("uncertainty_note","Photo-based estimate."))
+                        json.optDouble("protein_g",0.0),json.optDouble("carbs_g",0.0),json.optDouble("fat_g",0.0),json.optString("uncertainty_note","Photo-based estimate."),json.optString("clarifying_question",""))
                 }
                 estimate = result
                 status = "Review the AI estimate before saving."
