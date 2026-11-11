@@ -18,13 +18,16 @@ import com.gaintrack.app.ui.screens.v2.GainTrackV2Screen
 @Composable
 fun AppNavigation(app: GainTrackApp) {
     var dashboard by rememberSaveable { mutableIntStateOf(0) }
+    // Kept only in process memory, never stored on disk or inside GitHub.
+    // Hoisting it prevents an unexpected reset when the user opens WORKOUT.
+    var geminiApiKey by remember { mutableStateOf("") }
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
             TabRow(selectedTabIndex = dashboard) {
                 Tab(selected = dashboard == 0, onClick = { dashboard = 0 }, text = { Text("WORKOUT") })
                 Tab(selected = dashboard == 1, onClick = { dashboard = 1 }, text = { Text("NUTRITION") })
             }
-            if (dashboard == 0) GainTrackV2Screen() else NutritionDashboard(app)
+            if (dashboard == 0) GainTrackV2Screen() else NutritionDashboard(app, apiKey = geminiApiKey, onApiKeyChange = { geminiApiKey = it })
         }
     }
 }
