@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gaintrack.app.GainTrackApp
@@ -52,7 +53,7 @@ private data class Estimate(val name:String,val portion:String,val kcal:Int,val 
 private fun foodToday() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
 @Composable
-fun NutritionDashboard(app: GainTrackApp) {
+fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val meals by app.nutritionRepository.getMealsForDate(foodToday()).collectAsState(initial = emptyList())
@@ -66,7 +67,6 @@ fun NutritionDashboard(app: GainTrackApp) {
     var mealType by remember { mutableStateOf("Lunch") }
     var portion by remember { mutableStateOf("Medium serving") }
     var ingredients by remember { mutableStateOf("") }
-    var apiKey by remember { mutableStateOf("") }
     var settings by remember { mutableStateOf(false) }
     var manual by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
@@ -94,14 +94,14 @@ fun NutritionDashboard(app: GainTrackApp) {
         lastBitmap = bitmap
         if (apiKey.isBlank()) { status = "Add your Gemini API key in AI Settings to analyse photos. Manual logging is free."; settings = true; return }
         busy = true
-        status = "Analysing food photo…"
+        status = "Analysing photo. This can take up to 40 seconds…"
         scope.launch {
             try {
                 val result = withContext(Dispatchers.IO) {
                     val stream = ByteArrayOutputStream()
-                    val scale = minOf(1f, 1200f / maxOf(bitmap.width, bitmap.height))
+                    val scale = minOf(1f, 960f / maxOf(bitmap.width, bitmap.height))
                     val uploadBitmap = if (scale < 1f) Bitmap.createScaledBitmap(bitmap, (bitmap.width * scale).toInt(), (bitmap.height * scale).toInt(), true) else bitmap
-                    uploadBitmap.compress(Bitmap.CompressFormat.JPEG, 82, stream)
+                    uploadBitmap.compress(Bitmap.CompressFormat.JPEG, 76, stream)
                     val encoded = Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
                     val prompt = """You estimate nutrition for Sri Lankan food photos. Identify visible foods and estimate edible portions. Optional ingredients: ${ingredients.ifBlank { "not provided" }}. Portion hint: $portion. User clarification: $clarification. Return ONLY JSON keys food_name, portion, calories, protein_g, carbs_g, fat_g, uncertainty_note, clarifying_question. If a key ingredient or portion is important and cannot be inferred, ask one short clarifying question; otherwise return an empty clarifying_question. Use reasonable food-composition estimates. Do not claim exactness. If milk powder, sugar, oil or hidden ingredients cannot be seen, state uncertainty and give a broad estimate."""
                     val parts = JSONArray().put(JSONObject().put("text", prompt))
@@ -109,7 +109,7 @@ fun NutritionDashboard(app: GainTrackApp) {
                     val body = JSONObject().put("contents", JSONArray().put(JSONObject().put("parts", parts)))
                         .put("generationConfig", JSONObject().put("responseMimeType", "application/json"))
                     val conn = URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent").openConnection() as HttpURLConnection
-                    conn.requestMethod = "POST"; conn.connectTimeout = 20000; conn.readTimeout = 45000; conn.doOutput = true
+                    conn.requestMethod = "POST"; conn.connectTimeout = 12000; conn.readTimeout = 30000; conn.doOutput = true
                     conn.setRequestProperty("Content-Type", "application/json")
                     conn.setRequestProperty("x-goog-api-key", apiKey.trim())
                     conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
@@ -118,18 +118,15 @@ fun NutritionDashboard(app: GainTrackApp) {
                         ?.bufferedReader()?.use { it.readText() }.orEmpty()
                     conn.disconnect()
                     if (code !in 200..299) {
-                        val googleMessage = try {
-                            JSONObject(response).optJSONObject("error")?.optString("message").orEmpty()
-                        } catch (_: Exception) { "" }
-                        val detail = googleMessage.ifBlank {
-                            when (code) {
-                                400, 403 -> "Check that this is a valid Gemini API key with Generative Language API access."
-                                404 -> "The selected Gemini model or API endpoint was not found. The app now uses gemini-3.8-flash."
-                                429 -> "Gemini free-tier quota or rate limit reached. Check your project usage in Google AI Studio."
-                                else -> "Please try again later."
-                            }
+                        val explanation = when (code) {
+                            400 -> "Invalid photo request or API configuration."
+                            401, 403 -> "API key not authorized. Create a new key in Google AI Studio and check its project restrictions."
+                            404 -> "The selected Gemini model is unavailable for this API key/project."
+                            429 -> "Gemini API quota or rate limit reached. Check usage limits in Google AI Studio."
+                            500, 502, 503, 504 -> "Google's service is temporarily unavailable. Try again shortly."
+                            else -> "Request failed (HTTP $code). Check your Gemini API project and try again."
                         }
-                        error("Gemini API error $code: $detail")
+                        error("AI error $code: $explanation")
                     }
                     val responseJson = JSONObject(response)
                     val candidates = responseJson.optJSONArray("candidates")
@@ -137,14 +134,30 @@ fun NutritionDashboard(app: GainTrackApp) {
                         val blockReason = responseJson.optJSONObject("promptFeedback")?.optString("blockReason").orEmpty()
                         error("Gemini returned no food estimate. " + blockReason.ifBlank { "Try another clear photo." })
                     }
-                    val answer = candidates.getJSONObject(0).getJSONObject("content").getJSONArray("parts").getJSONObject(0).getString("text")
+                    val responseParts = candidates.getJSONObject(0).optJSONObject("content")?.optJSONArray("parts")
+                        ?: error("Gemini returned an empty response. Try a different photo.")
+                    val answer = buildString {
+                        for (index in 0 until responseParts.length()) {
+                            val textPart = responseParts.optJSONObject(index)?.optString("text").orEmpty()
+                            if (textPart.isNotBlank()) append(textPart)
+                        }
+                    }
+                    if (answer.isBlank()) error("Gemini did not return a food estimate. Try a different photo.")
                     val json = JSONObject(answer.trim().removePrefix("```json").removePrefix("```").removeSuffix("```").trim())
                     Estimate(json.optString("food_name","Food"),json.optString("portion","Estimated serving"),json.optInt("calories",0),
                         json.optDouble("protein_g",0.0),json.optDouble("carbs_g",0.0),json.optDouble("fat_g",0.0),json.optString("uncertainty_note","Photo-based estimate."),json.optString("clarifying_question",""))
                 }
                 estimate = result
                 status = "Review the AI estimate before saving."
-            } catch (e: Exception) { status = e.message ?: "Photo analysis failed. Try manual entry." }
+            } catch (e: Exception) {
+                status = when (e) {
+                    is java.net.SocketTimeoutException -> "AI error: Request timed out. Check your internet connection and try again."
+                    is java.net.UnknownHostException -> "AI error: No internet connection or DNS lookup failed. Check mobile data or Wi-Fi."
+                    is org.json.JSONException -> "AI error: Could not understand Gemini's response. Try the photo again."
+                    else -> e.message?.takeIf { it.startsWith("AI error") || it.startsWith("Gemini returned") || it.startsWith("Gemini did not") }
+                        ?: "AI error: Photo analysis failed. Try again or add the food manually."
+                }
+            }
             finally { busy = false }
         }
     }
@@ -189,11 +202,17 @@ fun NutritionDashboard(app: GainTrackApp) {
                         OutlinedTextField(value=portion,onValueChange={portion=it},label={Text("Portion (optional)")},placeholder={Text("One medium bowl")},modifier=Modifier.fillMaxWidth(),singleLine=true)
                         OutlinedTextField(value=ingredients,onValueChange={ingredients=it},label={Text("Ingredients / brand (optional)")},placeholder={Text("3 tbsp milk powder + 2 tsp sugar")},modifier=Modifier.fillMaxWidth(),minLines=2)
                         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                            Button(onClick={camera.launch(null)},modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=NG,contentColor=NB)) { Icon(Icons.Default.CameraAlt,null); Text(" Camera") }
-                            OutlinedButton(onClick={gallery.launch("image/*")},modifier=Modifier.weight(1f)) { Icon(Icons.Default.Image,null); Text(" Gallery") }
+                            Button(onClick={camera.launch(null)},enabled=!busy,modifier=Modifier.weight(1f),colors=ButtonDefaults.buttonColors(containerColor=NG,contentColor=NB)) { Icon(Icons.Default.CameraAlt,null); Text(" Camera") }
+                            OutlinedButton(onClick={gallery.launch("image/*")},enabled=!busy,modifier=Modifier.weight(1f)) { Icon(Icons.Default.Image,null); Text(" Gallery") }
                         }
                         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth(),color=NG)
-                        if (status.isNotBlank()) Text(status,color=NM,fontSize=12.sp)
+                        if (status.isNotBlank()) {
+                            val failed = status.startsWith("AI error") || status.startsWith("Gemini returned") || status.startsWith("Gemini did not")
+                            Text(status,color=if (failed) Color(0xFFFFB4AB) else NM,fontSize=13.sp)
+                            if (failed && lastBitmap != null && !busy) {
+                                TextButton(onClick={lastBitmap?.let { analyse(it) }}) { Text("Retry this photo", color=NG) }
+                            }
+                        }
                     }
                 }
             }
@@ -225,8 +244,8 @@ fun NutritionDashboard(app: GainTrackApp) {
         }
     }
     if(settings) AlertDialog(onDismissRequest={settings=false},containerColor=NP,title={Text("Gemini AI setup",color=NT)},
-        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){Text("Enter your Gemini API key for this app session. It stays in memory and is not saved. You will need to enter it again after closing the app. Manual logging works without it.",color=NM,fontSize=12.sp);OutlinedTextField(value=apiKey,onValueChange={apiKey=it},label={Text("Gemini API key")},modifier=Modifier.fillMaxWidth(),singleLine=true);Text("Free-tier limits and Google's data-use terms apply.",color=NM,fontSize=11.sp)}},
-        confirmButton={TextButton(onClick={settings=false;lastBitmap?.let { analyse(it) }}){Text("Analyse photo",color=NG)}},
+        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){Text("Use a new Gemini API key. It stays only in app memory while the app is running (including when switching tabs). It is never saved to a file. Manual logging works without a key.",color=NM,fontSize=12.sp);OutlinedTextField(value=apiKey,onValueChange=onApiKeyChange,label={Text("Gemini API key")},modifier=Modifier.fillMaxWidth(),singleLine=true,visualTransformation=PasswordVisualTransformation());Text("Free-tier limits and Google's data-use terms apply.",color=NM,fontSize=11.sp)}},
+        confirmButton={TextButton(onClick={settings=false;lastBitmap?.let { analyse(it) }}){Text(if (lastBitmap != null) "Analyse photo" else "Done",color=NG)}},
         dismissButton={TextButton(onClick={settings=false}){Text("Cancel")}})
     if(manual) AlertDialog(onDismissRequest={manual=false},containerColor=NP,title={Text("Add food manually",color=NT)},
         text={Column(verticalArrangement=Arrangement.spacedBy(6.dp)){
