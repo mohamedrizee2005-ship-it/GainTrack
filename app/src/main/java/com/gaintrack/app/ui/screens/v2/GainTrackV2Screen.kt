@@ -281,7 +281,7 @@ fun GainTrackV2Screen(modifier: Modifier = Modifier) {
             containerColor = Panel,
             title = { Text("Your starting profile", color = White, fontWeight = FontWeight.Bold) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("21 years • Male", color = White)
                     Text("Starting weight: 47 kg • Height: 167 cm", color = White)
                     OutlinedTextField(
