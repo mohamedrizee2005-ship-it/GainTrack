@@ -29,6 +29,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.gaintrack.app.GainTrackApp
+import com.gaintrack.app.data.local.SecureGeminiSettings
 import com.gaintrack.app.data.local.entity.MealLogEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -53,7 +54,14 @@ private data class Estimate(val name:String,val portion:String,val kcal:Int,val 
 private fun foodToday() = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
 @Composable
-fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (String) -> Unit) {
+fun NutritionDashboard(
+    app: GainTrackApp,
+    apiKey: String,
+    model: String,
+    onSaveKey: (String) -> Boolean,
+    onForgetKey: () -> Unit,
+    onModelChange: (String) -> Unit
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val meals by app.nutritionRepository.getMealsForDate(foodToday()).collectAsState(initial = emptyList())
@@ -68,6 +76,8 @@ fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (Strin
     var portion by remember { mutableStateOf("Medium serving") }
     var ingredients by remember { mutableStateOf("") }
     var settings by remember { mutableStateOf(false) }
+    var draftKey by remember { mutableStateOf("") }
+    var settingsError by remember { mutableStateOf("") }
     var manual by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
     var kcal by remember { mutableStateOf("") }
@@ -90,9 +100,15 @@ fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (Strin
             status = "Saved to today's food diary."
         }
     }
-    fun analyse(bitmap: Bitmap) {
+    fun analyse(bitmap: Bitmap, overrideKey: String? = null) {
         lastBitmap = bitmap
-        if (apiKey.isBlank()) { status = "Add your Gemini API key in AI Settings to analyse photos. Manual logging is free."; settings = true; return }
+        val selectedKey = overrideKey ?: apiKey
+        if (selectedKey.isBlank()) {
+            status = "Add your Gemini API key in AI Settings to analyse photos. Manual logging is free."
+            draftKey = ""
+            settings = true
+            return
+        }
         busy = true
         status = "Analysing photo. This can take up to 40 seconds…"
         scope.launch {
@@ -108,10 +124,10 @@ fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (Strin
                         .put(JSONObject().put("inline_data", JSONObject().put("mime_type", "image/jpeg").put("data", encoded)))
                     val body = JSONObject().put("contents", JSONArray().put(JSONObject().put("parts", parts)))
                         .put("generationConfig", JSONObject().put("responseMimeType", "application/json"))
-                    val conn = URL("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent").openConnection() as HttpURLConnection
+                    val conn = URL("https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent").openConnection() as HttpURLConnection
                     conn.requestMethod = "POST"; conn.connectTimeout = 12000; conn.readTimeout = 30000; conn.doOutput = true
                     conn.setRequestProperty("Content-Type", "application/json")
-                    conn.setRequestProperty("x-goog-api-key", apiKey.trim())
+                    conn.setRequestProperty("x-goog-api-key", selectedKey.trim())
                     conn.outputStream.use { it.write(body.toString().toByteArray(Charsets.UTF_8)) }
                     val code = conn.responseCode
                     val response = (if (code in 200..299) conn.inputStream else conn.errorStream)
@@ -150,13 +166,7 @@ fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (Strin
                 estimate = result
                 status = "Review the AI estimate before saving."
             } catch (e: Exception) {
-                status = when (e) {
-                    is java.net.SocketTimeoutException -> "AI error: Request timed out. Check your internet connection and try again."
-                    is java.net.UnknownHostException -> "AI error: No internet connection or DNS lookup failed. Check mobile data or Wi-Fi."
-                    is org.json.JSONException -> "AI error: Could not understand Gemini's response. Try the photo again."
-                    else -> e.message?.takeIf { it.startsWith("AI error") || it.startsWith("Gemini returned") || it.startsWith("Gemini did not") }
-                        ?: "AI error: Photo analysis failed. Try again or add the food manually."
-                }
+                status = friendlyGeminiError(e)
             }
             finally { busy = false }
         }
@@ -171,7 +181,11 @@ fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (Strin
             item {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Column { Text("NUTRITION COACH", color=NG, fontSize=11.sp, fontWeight=FontWeight.Bold); Text("Fuel your progress.", color=NT, fontSize=26.sp, fontWeight=FontWeight.ExtraBold); Text("Sri Lankan food • daily guidance", color=NM, fontSize=12.sp) }
-                    TextButton(onClick={settings=true}) { Text("AI SETTINGS", color=NG) }
+                    TextButton(onClick={
+                        draftKey = ""
+                        settingsError = ""
+                        settings = true
+                    }) { Text("AI SETTINGS", color=NG) }
                 }
             }
             item {
@@ -206,6 +220,25 @@ fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (Strin
                             OutlinedButton(onClick={gallery.launch("image/*")},enabled=!busy,modifier=Modifier.weight(1f)) { Icon(Icons.Default.Image,null); Text(" Gallery") }
                         }
                         if (busy) LinearProgressIndicator(Modifier.fillMaxWidth(),color=NG)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                if (model == SecureGeminiSettings.FREE_MODEL) "Flash-Lite · Free" else "Flash · Quality",
+                                color = NM,
+                                fontSize = 12.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(enabled = !busy, onClick = {
+                                busy = true
+                                status = "Checking Gemini connection…"
+                                scope.launch {
+                                    status = withContext(Dispatchers.IO) {
+                                        try { checkGeminiConnection(apiKey, model) }
+                                        catch (e: Exception) { friendlyGeminiError(e) }
+                                    }
+                                    busy = false
+                                }
+                            }) { Text("Test AI connection", color = NG, fontSize = 11.sp) }
+                        }
                         if (status.isNotBlank()) {
                             val failed = status.startsWith("AI error") || status.startsWith("Gemini returned") || status.startsWith("Gemini did not")
                             Text(status,color=if (failed) Color(0xFFFFB4AB) else NM,fontSize=13.sp)
@@ -243,10 +276,71 @@ fun NutritionDashboard(app: GainTrackApp, apiKey: String, onApiKeyChange: (Strin
             item { Text("Photo estimates are approximate. Oil, ingredients and portion sizes can change calories. Review before saving.",color=NM,fontSize=11.sp) }
         }
     }
-    if(settings) AlertDialog(onDismissRequest={settings=false},containerColor=NP,title={Text("Gemini AI setup",color=NT)},
-        text={Column(verticalArrangement=Arrangement.spacedBy(8.dp)){Text("Use a new Gemini API key. It stays only in app memory while the app is running (including when switching tabs). It is never saved to a file. Manual logging works without a key.",color=NM,fontSize=12.sp);OutlinedTextField(value=apiKey,onValueChange=onApiKeyChange,label={Text("Gemini API key")},modifier=Modifier.fillMaxWidth(),singleLine=true,visualTransformation=PasswordVisualTransformation());Text("Free-tier limits and Google's data-use terms apply.",color=NM,fontSize=11.sp)}},
-        confirmButton={TextButton(onClick={settings=false;lastBitmap?.let { analyse(it) }}){Text(if (lastBitmap != null) "Analyse photo" else "Done",color=NG)}},
-        dismissButton={TextButton(onClick={settings=false}){Text("Cancel")}})
+    if (settings) AlertDialog(
+        onDismissRequest = { settings = false },
+        containerColor = NP,
+        title = { Text("Gemini AI settings", color = NT) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    if (apiKey.isBlank()) "No key saved. Enter your new Gemini key once and save it securely on this phone."
+                    else "Your key is saved securely on this phone. Leave the field empty to keep it, or type a new key to replace it.",
+                    color = NM, fontSize = 12.sp
+                )
+                OutlinedTextField(
+                    value = draftKey,
+                    onValueChange = { draftKey = it },
+                    label = { Text("New API key (optional when saved)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation()
+                )
+                Text("Gemini model", color = NT, fontSize = 12.sp)
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    FilterChip(
+                        selected = model == SecureGeminiSettings.FREE_MODEL,
+                        onClick = { onModelChange(SecureGeminiSettings.FREE_MODEL) },
+                        label = { Text("Flash-Lite · Free", fontSize = 10.sp) }
+                    )
+                    FilterChip(
+                        selected = model == SecureGeminiSettings.QUALITY_MODEL,
+                        onClick = { onModelChange(SecureGeminiSettings.QUALITY_MODEL) },
+                        label = { Text("Flash · Quality", fontSize = 10.sp) }
+                    )
+                }
+                if (apiKey.isNotBlank()) {
+                    TextButton(onClick = {
+                        onForgetKey()
+                        draftKey = ""
+                        settingsError = "The saved API key was cleared."
+                    }) { Text("Forget saved key", color = Color(0xFFFFB4AB)) }
+                }
+                if (settingsError.isNotBlank()) {
+                    Text(settingsError, color = Color(0xFFFFB4AB), fontSize = 12.sp)
+                }
+                Text(
+                    "The key is encrypted with Android Keystore and stays on this phone. Uninstalling the app removes it. Free requests still have Google project limits.",
+                    color = NM, fontSize = 11.sp
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val candidate = draftKey.trim().ifBlank { apiKey }
+                if (candidate.isBlank()) {
+                    settingsError = "Enter a Gemini API key first."
+                } else if (draftKey.isNotBlank() && !onSaveKey(candidate)) {
+                    settingsError = "Could not securely save this key. Please retry."
+                } else {
+                    settings = false
+                    settingsError = ""
+                    draftKey = ""
+                    lastBitmap?.let { if (!busy) analyse(it, candidate) }
+                }
+            }) { Text(if (lastBitmap == null) "Save settings" else "Save & analyse", color = NG) }
+        },
+        dismissButton = { TextButton(onClick = { settings = false }) { Text("Cancel") } }
+    )
     if(manual) AlertDialog(onDismissRequest={manual=false},containerColor=NP,title={Text("Add food manually",color=NT)},
         text={Column(verticalArrangement=Arrangement.spacedBy(6.dp)){
             OutlinedTextField(value=name,onValueChange={name=it},label={Text("Food name")},modifier=Modifier.fillMaxWidth())
