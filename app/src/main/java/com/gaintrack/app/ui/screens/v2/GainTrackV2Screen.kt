@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material3.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -169,6 +171,8 @@ fun GainTrackV2Screen(modifier: Modifier = Modifier) {
     var doneKeys by remember { mutableStateOf(prefs.getString("completed", "") ?: "") }
     var checkedSets by rememberSaveable { mutableStateOf(prefs.getString("draft_sets", "") ?: "") }
     var showProfile by rememberSaveable { mutableStateOf(false) }
+    var currentWeight by rememberSaveable { mutableStateOf(prefs.getString("current_weight", "47.0") ?: "47.0") }
+    var targetWeight by rememberSaveable { mutableStateOf(prefs.getString("goal_weight", "52.0") ?: "52.0") }
 
     val doneSet = remember(doneKeys) { doneKeys.split(",").filter { it.isNotBlank() }.toSet() }
     val weekCount = remember(doneSet) {
@@ -235,6 +239,8 @@ fun GainTrackV2Screen(modifier: Modifier = Modifier) {
                     0 -> HomeTab(
                         plan = plan,
                         pushupLevel = pushupLevel,
+                        currentWeight = currentWeight,
+                        targetWeight = targetWeight,
                         selectedDay = selectedDay,
                         doneSet = doneSet,
                         weekCount = weekCount,
@@ -268,6 +274,8 @@ fun GainTrackV2Screen(modifier: Modifier = Modifier) {
     }
 
     if (showProfile) {
+        var draftWeight by remember(currentWeight) { mutableStateOf(currentWeight) }
+        var draftGoal by remember(targetWeight) { mutableStateOf(targetWeight) }
         AlertDialog(
             onDismissRequest = { showProfile = false },
             containerColor = Panel,
@@ -275,9 +283,26 @@ fun GainTrackV2Screen(modifier: Modifier = Modifier) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("21 years • Male", color = White)
-                    Text("Starting weight: 47 kg", color = White)
-                    Text("Height: 167 cm", color = White)
-                    Text("BMI: 16.9", color = Lime, fontWeight = FontWeight.Bold)
+                    Text("Starting weight: 47 kg • Height: 167 cm", color = White)
+                    OutlinedTextField(
+                        value = draftWeight,
+                        onValueChange = { draftWeight = it.filter { char -> char.isDigit() || char == '.' } },
+                        label = { Text("Current weight (kg)") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = draftGoal,
+                        onValueChange = { draftGoal = it.filter { char -> char.isDigit() || char == '.' } },
+                        label = { Text("Weight goal (kg)") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    val bmi = ((draftWeight.toDoubleOrNull() ?: 47.0) / (1.67 * 1.67))
+                    Text("BMI: ${String.format(Locale.US, "%.1f", bmi)} · Weight is only one measure of progress",
+                        color = Lime, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     Text("Full push-up ability: $pushupLevel clean reps", color = Lime, fontWeight = FontWeight.Bold)
                     Text("Update your level when you can reliably do more clean full push-ups.", color = Muted, fontSize = 12.sp)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -307,7 +332,20 @@ fun GainTrackV2Screen(modifier: Modifier = Modifier) {
                     Text("Train with control and allow recovery. With a BMI under 18.5, consider a healthcare assessment if your weight is low or falling unexpectedly.", color = Muted, fontSize = 12.sp)
                 }
             },
-            confirmButton = { TextButton(onClick = { showProfile = false }) { Text("Close", color = Lime) } }
+            confirmButton = {
+                TextButton(onClick = {
+                    val w = draftWeight.toDoubleOrNull()
+                    val g = draftGoal.toDoubleOrNull()
+                    if (w != null && g != null && w in 25.0..300.0 && g in 25.0..300.0) {
+                        currentWeight = String.format(Locale.US, "%.1f", w)
+                        targetWeight = String.format(Locale.US, "%.1f", g)
+                        prefs.edit().putString("current_weight", currentWeight)
+                            .putString("goal_weight", targetWeight).apply()
+                        showProfile = false
+                    }
+                }) { Text("Save profile", color = Lime) }
+            },
+            dismissButton = { TextButton(onClick = { showProfile = false }) { Text("Cancel", color = Muted) } }
         )
     }
 }
@@ -316,6 +354,8 @@ fun GainTrackV2Screen(modifier: Modifier = Modifier) {
 private fun HomeTab(
     plan: List<TrainingDay>,
     pushupLevel: String,
+    currentWeight: String,
+    targetWeight: String,
     selectedDay: Int,
     doneSet: Set<String>,
     weekCount: Int,
@@ -349,15 +389,21 @@ private fun HomeTab(
                 Text("YOUR STARTING POINT", color = Aqua, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp)
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(0.dp), modifier = Modifier.fillMaxWidth()) {
-                    ProfileMetric("47", "KG", Modifier.weight(1f))
+                    ProfileMetric(currentWeight, "KG", Modifier.weight(1f))
                     ProfileMetric("167", "CM", Modifier.weight(1f))
-                    ProfileMetric("21", "YEARS", Modifier.weight(1f))
+                    ProfileMetric(targetWeight, "GOAL KG", Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(14.dp))
                 Text("4-day no-equipment strength plan", color = White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
                 Text("Simple home training, real progress", color = Muted, fontSize = 12.sp)
                 Spacer(Modifier.height(8.dp))
                 Text("Full push-up level: $pushupLevel reps", color = Aqua, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                val remaining = ((targetWeight.toDoubleOrNull() ?: 52.0) - (currentWeight.toDoubleOrNull() ?: 47.0)).coerceAtLeast(0.0)
+                Text(
+                    if (remaining < 0.1) "Weight milestone reached — review your goal"
+                    else "${String.format(Locale.US, "%.1f", remaining)} kg toward your next milestone",
+                    color = Muted, fontSize = 12.sp
+                )
             }
         }
         Spacer(Modifier.height(22.dp))
