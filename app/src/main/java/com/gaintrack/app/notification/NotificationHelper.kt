@@ -15,12 +15,10 @@ class NotificationHelper(private val context: Context) {
     companion object {
         const val CHANNEL_WORKOUTS = "channel_gaintrack_workouts"
         const val CHANNEL_CHECKINS = "channel_gaintrack_checkins"
-        const val CHANNEL_NUTRITION = "channel_gaintrack_nutrition"
         const val CHANNEL_WELLNESS = "channel_gaintrack_wellness"
 
         const val NOTIF_ID_WORKOUT = 1001
         const val NOTIF_ID_CHECKIN = 1002
-        const val NOTIF_ID_NUTRITION = 1003
         const val NOTIF_ID_WATER = 1004
         const val NOTIF_ID_SLEEP = 1005
     }
@@ -52,14 +50,6 @@ class NotificationHelper(private val context: Context) {
                 enableVibration(true)
             }
 
-            val nutritionChannel = NotificationChannel(
-                CHANNEL_NUTRITION,
-                "Nutrition & Meals",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Reminders to log calories and protein"
-            }
-
             val wellnessChannel = NotificationChannel(
                 CHANNEL_WELLNESS,
                 "Recovery & Hydration",
@@ -69,7 +59,7 @@ class NotificationHelper(private val context: Context) {
             }
 
             notificationManager.createNotificationChannels(
-                listOf(workoutChannel, checkinChannel, nutritionChannel, wellnessChannel)
+                listOf(workoutChannel, checkinChannel, wellnessChannel)
             )
         }
     }
@@ -89,15 +79,6 @@ class NotificationHelper(private val context: Context) {
             notifId = NOTIF_ID_CHECKIN,
             title = "GainTrack: Sunday Weekly Check-in",
             message = "Time for your weekly check-in! Record your weight, energy, and review your weekly consistency."
-        )
-    }
-
-    fun showNutritionReminder(title: String, message: String) {
-        showNotification(
-            channelId = CHANNEL_NUTRITION,
-            notifId = NOTIF_ID_NUTRITION,
-            title = title,
-            message = message
         )
     }
 
