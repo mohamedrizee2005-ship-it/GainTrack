@@ -52,7 +52,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v4.0.0
-          name: "GainTrack v4.0.0 (Workout + Nutrition APK)"
+          name: "GainTrack v4.0.0 (Workout-Only Strength APK)"
           body: |
             ## GainTrack 4.0.0 – Equipment-Free Strength Coach
 
