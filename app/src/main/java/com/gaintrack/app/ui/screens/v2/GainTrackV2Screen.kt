@@ -506,6 +506,18 @@ private fun WorkoutSessionView(
 ) {
     val total = day.exercises.sumOf { it.sets }
     val completed = checkedSets.size.coerceAtMost(total)
+    val progress by animateFloatAsState(
+        targetValue = completed.toFloat() / total.coerceAtLeast(1),
+        animationSpec = tween(durationMillis = 450),
+        label = "Workout sets progress"
+    )
+    var restSeconds by rememberSaveable(day.id) { mutableIntStateOf(0) }
+    LaunchedEffect(restSeconds) {
+        if (restSeconds > 0) {
+            delay(1000)
+            restSeconds -= 1
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) { Icon(Icons.Default.ArrowBack, null, tint = White) }
@@ -516,7 +528,27 @@ private fun WorkoutSessionView(
             Text("$completed/$total", color = Aqua, fontWeight = FontWeight.Bold)
         }
         Box(Modifier.fillMaxWidth().padding(horizontal = 20.dp).height(6.dp).clip(CircleShape).background(Panel2)) {
-            Box(Modifier.fillMaxWidth(completed.toFloat() / total.coerceAtLeast(1)).fillMaxHeight().clip(CircleShape).background(Lime))
+            Box(Modifier.fillMaxWidth(progress).fillMaxHeight().clip(CircleShape).background(Lime))
+        }
+        if (restSeconds > 0) {
+            Surface(
+                color = Color(0xFF1D332B),
+                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 14.dp)
+            ) {
+                Row(Modifier.padding(horizontal = 14.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Timer, "Rest timer", tint = Aqua)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text("RECOVERY BETWEEN SETS", color = Aqua, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Text("${restSeconds / 60}:${(restSeconds % 60).toString().padStart(2, '0')}", color = White, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                    }
+                    TextButton(onClick = { restSeconds = 0 }) {
+                        Icon(Icons.Default.SkipNext, null, tint = Lime, modifier = Modifier.size(17.dp))
+                        Text("Skip", color = Lime)
+                    }
+                }
+            }
         }
         LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.weight(1f)) {
             itemsIndexed(day.exercises) { index, ex ->
@@ -551,10 +583,15 @@ private fun WorkoutSessionView(
                                 val key = "${day.id}-${index}-${set}"
                                 val isChecked = key in checkedSets
                                 Surface(
-                                    onClick = { onToggleSet(key) },
+                                    onClick = {
+                                        onToggleSet(key)
+                                        if (!isChecked && !(index == day.exercises.lastIndex && set == ex.sets - 1)) {
+                                            restSeconds = ex.rest
+                                        }
+                                    },
                                     shape = RoundedCornerShape(11.dp),
                                     color = if (isChecked) Color(0xFF263A2B) else Panel2,
-                                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
+                                    modifier = Modifier.fillMaxWidth().padding(top = 6.dp).animateContentSize()
                                 ) {
                                     Row(Modifier.padding(horizontal = 12.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Icon(if (isChecked) Icons.Default.CheckCircle else Icons.Default.Check, null, tint = if (isChecked) Lime else Muted, modifier = Modifier.size(17.dp))
@@ -572,7 +609,7 @@ private fun WorkoutSessionView(
         }
         Surface(color = Panel) {
             Column(Modifier.padding(16.dp)) {
-                Text("$completed of $total sets completed", color = Muted, fontSize = 11.sp)
+                Text("$completed of $total sets completed • tap each set as you finish", color = Muted, fontSize = 11.sp)
                 Spacer(Modifier.height(8.dp))
                 Button(onClick = onFinish, enabled = completed == total, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp), colors = ButtonDefaults.buttonColors(containerColor = Lime, contentColor = Ink)) {
                     Text("FINISH SESSION", fontWeight = FontWeight.ExtraBold)
