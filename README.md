@@ -10,6 +10,14 @@
 
 ---
 
+## Push-up level calibration (v3)
+
+The current starting level is **5–10 clean full push-ups in one set**. The app starts its main push-up work with **2 sets of 3–6 full push-ups** on Monday and Thursday, with about **2–3 good reps left in reserve** and 120 seconds between challenging sets. Use incline push-ups afterward for extra chest work.
+
+Tap **Today → Profile** to update the push-up category (0–4, 5–10, 11–20, or 21+). The app adjusts the first push-up exercise in both push days to match the new level. The other exercises and scheduled rest days remain stable.
+
+**Progression:** First build consistent technique, then add repetitions. If two sets of six full push-ups feel controlled across two separate sessions, gradually work toward sets of eight to ten. Update the category only when a fresh test confirms at least eleven consecutive clean full push-ups. The app **does not automatically infer repetitions from checked-off sets**; the user must update the level manually.
+
 ## Legacy v1/v2 documentation below
 The original four-day plan below used a backpack and the later v2 code used five days. The v3 workout schedule above is authoritative for this branch.
 
