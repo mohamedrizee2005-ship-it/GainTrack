@@ -1,3 +1,18 @@
+# GainTrack v3.0 — Focused No-Equipment Muscle Coach
+
+**Current workout plan (v3):** Monday (chest/triceps), Tuesday (back/biceps/core), Thursday (chest/shoulders), Saturday (back/arms/light legs). **Rest days:** Wednesday, Friday, Sunday. The Android app retains its nutrition diary, photo-based meal estimates, and progress screens.
+
+**How to build:** The [GitHub Actions workflow](../../actions/workflows/build-apk.yml) produces a debug APK artifact. Install on an Android device only after reviewing the build and app permissions. This is a development/debug build, not a production-signed Play Store release.
+
+**Fitness note:** For a 47 kg adult aiming to gain weight, the food log's 2100 kcal and 85 g protein entries are starting estimates, not measured energy needs or a guaranteed prescription. Track weekly average body weight and adjust with care. The no-equipment self-resisted and floor-based back exercises are inherently harder to load progressively than safe equipment-based rows. Seek medical advice about persistent underweight or unintended weight loss.
+
+**Workout changes in v3:** Four spaced sessions, easier-to-follow push-up progressions, controlled self-resisted arm/back training, more recovery, and real 12-week workout completion history. A session is marked complete after all planned sets are checked.
+
+---
+
+## Legacy v1/v2 documentation below
+The original four-day plan below used a backpack and the later v2 code used five days. The v3 workout schedule above is authoritative for this branch.
+
 # GainTrack – Muscle & Weight Gain Tracker
 
 A native Android application architected for healthy, progressive weight and muscle gain at home using bodyweight and household backpack resistance. Preloaded with affordable Sri Lankan nutrition and safe, gradual progress tracking (+0.1 to 0.25 kg/week).
