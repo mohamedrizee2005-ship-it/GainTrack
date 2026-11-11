@@ -66,33 +66,6 @@ class ReminderScheduler(private val context: Context) {
         )
     }
 
-    fun scheduleNutritionReminder(hour: Int = 20, minute: Int = 0) {
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            if (before(Calendar.getInstance())) {
-                add(Calendar.DAY_OF_YEAR, 1)
-            }
-        }
-        val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
-            action = ReminderBroadcastReceiver.ACTION_NUTRITION_REMINDER
-        }
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            103,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        alarmManager?.setInexactRepeating(
-            AlarmManager.RTC_WAKEUP,
-            calendar.timeInMillis,
-            AlarmManager.INTERVAL_DAY,
-            pendingIntent
-        )
-    }
-
     fun scheduleAllDefaultReminders() {
         scheduleWorkoutReminder(19, 30)
         scheduleSundayCheckInReminder(19, 0)
