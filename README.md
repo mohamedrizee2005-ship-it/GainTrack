@@ -1,160 +1,49 @@
-# GainTrack v3.0 — Focused No-Equipment Muscle Coach
+# GainTrack 4.0 — Your Workout, Simplified
 
-**Current workout plan (v3):** Monday (chest/triceps), Tuesday (back/biceps/core), Thursday (chest/shoulders), Saturday (back/arms/light legs). **Rest days:** Wednesday, Friday, Sunday. The Android app retains its nutrition diary, photo-based meal estimates, and progress screens.
+A focused **offline-first, no-equipment Android strength coach**, built with Kotlin and Jetpack Compose. GainTrack 4 removes the Nutrition tab, food photos, AI camera, Gemini API setup, calorie counter, and old meal reminders. This version is only about training, rest and consistent progress.
 
-**How to build:** The [GitHub Actions workflow](../../actions/workflows/build-apk.yml) produces a debug APK artifact. Install on an Android device only after reviewing the build and app permissions. This is a development/debug build, not a production-signed Play Store release.
+## What is new
 
-**Fitness note:** For a 47 kg adult aiming to gain weight, the food log's 2100 kcal and 85 g protein entries are starting estimates, not measured energy needs or a guaranteed prescription. Track weekly average body weight and adjust with care. The no-equipment self-resisted and floor-based back exercises are inherently harder to load progressively than safe equipment-based rows. Seek medical advice about persistent underweight or unintended weight loss.
+- **Today:** One clear next step, recovery-day guidance, current weight and target milestone
+- **Plan:** Four guided workouts with exercise names, sets, repetitions, rest and video search links
+- **Session:** Tap to complete sets, animated progress bar, automatic rest countdown, and a skip-rest control
+- **Progress:** Local completion history and 12-week consistency display
+- **Profile:** Choose 0–4, 5–10, 11–20 or 21+ push-ups; update weight and goal
+- **Privacy:** Runs without the app's INTERNET permission, AI APIs or keys
+- **Resilience:** Incomplete set checkmarks are restored if you switch away and start the same workout again
 
-**Workout changes in v3:** Four spaced sessions, easier-to-follow push-up progressions, controlled self-resisted arm/back training, more recovery, and real 12-week workout completion history. A session is marked complete after all planned sets are checked.
+## Weekly schedule
 
----
+| Day | Focus |
+| --- | --- |
+| Monday | Chest, shoulders and triceps |
+| Tuesday | Back, biceps and core |
+| Wednesday | Rest |
+| Thursday | Chest, shoulders and triceps |
+| Friday | Rest |
+| Saturday | Back, arms and light legs |
+| Sunday | Rest / weight check-in |
 
-## Push-up level calibration (v3)
+The plan adapts the first push-up exercise to your ability, initially 5–10 consecutive good full push-ups. Use controlled technique, progress reps gradually, and avoid training through pain. Bodyweight-only back exercises are inherently harder to progressively load than rows with resistance.
 
-The current starting level is **5–10 clean full push-ups in one set**. The app starts its main push-up work with **2 sets of 3–6 full push-ups** on Monday and Thursday, with about **2–3 good reps left in reserve** and 120 seconds between challenging sets. Use incline push-ups afterward for extra chest work.
+**Starting profile:** 47 kg, 167 cm, age 21, optional initial milestone 52 kg. Weight can be updated in Profile; numbers are personal starting defaults, not prescriptions. A BMI below 18.5 merits clinical consideration, particularly after unintended weight loss. Weight gain generally requires adequate nutrition even though this version no longer tracks food.
 
-Tap **Today → Profile** to update the push-up category (0–4, 5–10, 11–20, or 21+). The app adjusts the first push-up exercise in both push days to match the new level. The other exercises and scheduled rest days remain stable.
+## Installing on Android
 
-**Progression:** First build consistent technique, then add repetitions. If two sets of six full push-ups feel controlled across two separate sessions, gradually work toward sets of eight to ten. Update the category only when a fresh test confirms at least eleven consecutive clean full push-ups. The app **does not automatically infer repetitions from checked-off sets**; the user must update the level manually.
+Download the v4 APK from [GitHub Releases](../../releases/tag/v4.0.0), then install it over your existing GainTrack app. **Do not uninstall first**: workout completions and historical data are stored locally. The package ID and database schema are retained to support upgrades. Old nutrition tables may remain inside a pre-existing database solely for backward compatibility, but this release has no Nutrition screen or Gemini integration.
 
-## Legacy v1/v2 documentation below
-The original four-day plan below used a backpack and the later v2 code used five days. The v3 workout schedule above is authoritative for this branch.
+This APK is a development/debug distribution, not a production-signed Play Store application. Verify Android permissions and device behavior before wider sharing.
 
-# GainTrack – Muscle & Weight Gain Tracker
+## Tech stack
 
-A native Android application architected for healthy, progressive weight and muscle gain at home using bodyweight and household backpack resistance. Preloaded with affordable Sri Lankan nutrition and safe, gradual progress tracking (+0.1 to 0.25 kg/week).
+- Kotlin, Jetpack Compose and Material 3
+- Local SharedPreferences for workout checkmarks and profile milestones
+- Room database retained for historical compatibility
+- Android notifications for workouts and check-ins
+- GitHub Actions for verified APK compilation
 
----
+## Version history
 
-## 📱 Default User Profile & Initial Calibration
-- **Current Weight**: 47.0 kg
-- **Target Weight**: 55.0 kg
-- **Height**: 168 cm
-- **BMI**: ~16.7 *(includes medical assessment recommendation for safe, guided weight gain)*
-- **Fitness Level**: Beginner
-- **Push-up Ability**: 5–10 consecutive reps
-- **Training Frequency**: 4 days per week (Mon, Tue, Thu, Sat)
-- **Workout Duration**: 30–40 minutes (Night, default 7:30 PM)
-- **Equipment**: No gym required; household backpack and sturdy furniture
+- v4.0.0 — Workout-only redesign, no AI or food logging
+- v3.0.2 — Legacy nutrition, now removed from the visible app
 
----
-
-## 🏋️ 4-Day Progressive Home Workout System
-
-### Monday – Chest, Shoulders & Triceps
-1. **Incline Push-ups**: 3 sets × 8–12 reps
-2. **Standard Push-ups**: 2 sets × 4–8 reps
-3. **Pike Push-ups**: 2 sets × 5–8 reps
-4. **Close-grip Incline Push-ups**: 2 sets × 8–10 reps
-
-### Tuesday – Legs & Core
-1. **Bodyweight Squats**: 3 sets × 12 reps
-2. **Reverse Lunges**: 2 sets × 8 reps per leg
-3. **Glute Bridges**: 3 sets × 12–15 reps
-4. **Calf Raises**: 2 sets × 15 reps
-5. **Plank**: 2 sets × 20–40 seconds
-
-### Thursday – Back & Biceps
-1. **Backpack Bent-over Rows**: 3 sets × 10–12 reps (start with 3–5 kg in backpack)
-2. **Single-arm Backpack Rows**: 2 sets × 10 reps per arm
-3. **Backpack Biceps Curls**: 2 sets × 10–12 reps
-4. **Superman Holds**: 2 sets × 15–20 seconds
-5. **Reverse Snow Angels**: 2 sets × 10–12 reps
-
-### Saturday – Full Body
-1. **Incline or Standard Push-ups**: 2 sets × 8–10 reps
-2. **Backpack Rows**: 2 sets × 10–12 reps
-3. **Squats**: 2 sets × 12 reps
-4. **Glute Bridges**: 2 sets × 15 reps
-5. **Lying Leg Raises**: 2 sets × 10 reps
-
----
-
-## 🍛 Sri Lankan Nutrition & Food Tracker
-- **Calorie Surplus Target**: ~2100 kcal (safe moderate surplus for gradual gain)
-- **Protein Target**: ~85g (~1.8g per kg body weight)
-- **Sri Lankan Food Database**:
-  - Cooked White / Red Rice
-  - Boiled & Fried Eggs
-  - Sri Lankan Chicken Curry
-  - Fish Curry / Ambul Thiyal
-  - Parippu / Dhal Curry
-  - Fresh Cow Milk / UHT Milk
-  - Bananas (Ambul / Seeni / Kolikuttu)
-  - Roasted Peanuts (Rata Kaju)
-  - Peanut Butter
-  - Rolled Oats
-  - String Hoppers (Idiyappam)
-  - Pol Roti
-  - Boiled Potatoes (Ala)
-  - Canned Tuna / Jack Mackerel
-  - Soya Meat Curry
-- **Homemade Weight-Gain Shake Quick Add**:
-  - 250ml milk + 1 banana + 40g oats + 2 tbsp peanut butter = **580 kcal & 22.1g protein** (1-tap log).
-
----
-
-## 📈 Sunday Check-in & Progressive Overload
-Every Sunday at 7:00 PM, the app prompts for the weekly check-in:
-1. Current weight in kg
-2. Number of workouts completed out of 4
-3. Energy level
-4. Appetite
-5. Average sleep hours
-6. Muscle soreness or joint pain
-7. Personal notes
-
-**Progressive Overload Guidance**:
-When you consistently hit the top of the repetition range across all sets with clean form, GainTrack suggests adding +1 kg to your backpack or advancing your push-up angle.
-
----
-
-## 🚀 How to Install on Your Samsung Galaxy A15
-
-### Option A: Automated GitHub Actions (No Android Studio required on PC!)
-1. Create a new repository on your GitHub account:
-   - Go to [https://github.com/new](https://github.com/new)
-   - Repository name: `GainTrack`
-   - Select **Public**
-2. In your terminal / command prompt, run:
-   ```bash
-   cd C:\Users\HP\.gemini\antigravity\scratch\GainTrack
-   git init
-   git add .
-   git commit -m "Initial commit of GainTrack"
-   git branch -M main
-   git remote add origin https://github.com/mohamedrizee2005-ship-it/GainTrack.git
-   git push -u origin main
-   ```
-3. Once pushed, open GitHub in your phone or PC browser:
-   - Tap **Actions** tab on your repository.
-   - The **Build GainTrack APK** workflow will run automatically (~2-3 minutes).
-   - Once completed, tap **Releases** or scroll to **Artifacts** and download `GainTrack-v1.0.0-Debug-APK` or `app-debug.apk`.
-4. Open the `.apk` on your Samsung Galaxy A15 and tap **Install**!
-
----
-
-### Option B: Build via Android Studio
-1. Launch **Android Studio**.
-2. Select **Open** and navigate to:
-   `C:\Users\HP\.gemini\antigravity\scratch\GainTrack`
-3. Wait for Gradle to finish indexing dependencies.
-4. In the top menu, click:
-   **Build** → **Build Bundle(s) / APK(s)** → **Build APK(s)**.
-5. When complete, a notification will appear saying *"APK(s) generated successfully"*. Click **locate**.
-   - The file will be at:
-     `GainTrack/app/build/outputs/apk/debug/app-debug.apk`
-6. Transfer this `app-debug.apk` to your Samsung Galaxy A15 (via USB, WhatsApp, or Google Drive), tap it, and tap **Install**.
-
----
-
-## 🛠️ Tech Stack & Architecture
-- **Language**: Kotlin 2.0.21
-- **UI Toolkit**: Jetpack Compose with Material 3 (Dark Navy & Emerald Green)
-- **Database**: Room Database 2.6.1 with KSP
-- **Asynchronous**: Kotlin Coroutines & StateFlow
-- **Navigation**: Navigation Compose 2.8.3
-- **Background Tasks & Alarms**: WorkManager & Android AlarmManager with NotificationChannels
-- **Charts**: Custom Jetpack Compose Canvas charts
-- **Architecture**: Clean Architecture (Presentation, Domain, Data)

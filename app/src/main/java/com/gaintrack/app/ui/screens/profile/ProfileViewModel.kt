@@ -74,7 +74,7 @@ class ProfileViewModel(
                 preferredWorkoutTime = workoutTime,
                 workoutReminderEnabled = workoutReminder,
                 checkInReminderEnabled = checkInReminder,
-                nutritionReminderEnabled = nutritionReminder,
+                nutritionReminderEnabled = false,
                 waterReminderEnabled = waterReminder,
                 sleepReminderEnabled = sleepReminder
             )
@@ -85,9 +85,6 @@ class ProfileViewModel(
             }
             if (checkInReminder) {
                 reminderScheduler.scheduleSundayCheckInReminder(19, 0)
-            }
-            if (nutritionReminder) {
-                reminderScheduler.scheduleNutritionReminder(20, 0)
             }
             _message.value = "Profile & reminders updated successfully!"
         }
@@ -128,7 +125,6 @@ class ProfileViewModel(
                     val exercises = PrepopulatedData.getExercisesForPlan(plan.id)
                     database.workoutDao().insertExercises(exercises)
                 }
-                database.nutritionDao().insertFoodItems(PrepopulatedData.defaultFoodItems)
                 for (log in PrepopulatedData.getInitialWeightLogs()) {
                     database.weightDao().insertWeightLog(log)
                 }

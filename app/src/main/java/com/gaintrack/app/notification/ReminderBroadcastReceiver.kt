@@ -21,17 +21,14 @@ class ReminderBroadcastReceiver : BroadcastReceiver() {
             ACTION_WORKOUT_REMINDER -> {
                 helper.showWorkoutReminder(
                     title = "GainTrack: Evening Workout Ready",
-                    message = "Time for your 35-min session! Prepare your backpack and hydrate. Let's make progress!"
+                    message = "Time for your home strength session. Train with control, rest well, and make progress."
                 )
             }
             ACTION_CHECKIN_REMINDER -> {
                 helper.showSundayCheckInReminder()
             }
             ACTION_NUTRITION_REMINDER -> {
-                helper.showNutritionReminder(
-                    title = "GainTrack: Nutrition Check",
-                    message = "Have you logged your meals and protein today? Don't forget your weight-gain shake!"
-                )
+                // Legacy v3 alarm: ignored in workout-only v4.
             }
             ACTION_WATER_REMINDER -> {
                 helper.showWaterReminder()
