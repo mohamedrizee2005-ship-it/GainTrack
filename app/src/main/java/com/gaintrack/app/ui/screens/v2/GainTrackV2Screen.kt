@@ -70,10 +70,10 @@ private data class TrainingDay(
     val exercises: List<Exercise>
 )
 
-private val plan = listOf(
+private val basePlan = listOf(
     TrainingDay(1, "MON", "Chest + Triceps", "CHEST • SHOULDERS • TRICEPS", "30–40 min", "PUSH A", listOf(
-        Exercise("Incline push-up", 3, "6–12", 90, "Chest, triceps", "Use a stable counter. Lower slowly with a straight body and stop with 1–3 good reps remaining.", "incline push up proper form"),
-        Exercise("Knee or standard push-up", 2, "5–10", 120, "Chest, triceps", "Choose a variation you can control without sagging hips.", "beginner push up progression"),
+        Exercise("Full push-up", 2, "3–6", 120, "Chest, triceps", "You can do 5–10 full reps consecutively. Start with 3–6 controlled reps per set and leave 2–3 good reps in reserve. If your form breaks, use an incline.", "standard push up beginner proper form"),
+        Exercise("Incline push-up", 2, "8–12", 90, "Chest, triceps", "Use a stable counter. Lower slowly with a straight body, and choose an incline that makes the last reps challenging.", "incline push up proper form"),
         Exercise("Close-grip incline push-up", 2, "8–12", 90, "Triceps", "Bring hands slightly closer and use a comfortable elbow angle.", "close grip incline push up"),
         Exercise("Pike push-up progression", 2, "5–8", 120, "Shoulders", "Move head forward and down; use partial range if needed and avoid neck pressure.", "pike push up beginner")
     )),
@@ -84,9 +84,9 @@ private val plan = listOf(
         Exercise("Dead bug", 2, "8–12 each", 60, "Core", "Keep your trunk stable as the opposite arm and leg extend.", "dead bug exercise")
     )),
     TrainingDay(3, "THU", "Chest + Shoulders", "CHEST • SHOULDERS • TRICEPS", "30–40 min", "PUSH B", listOf(
-        Exercise("Standard or incline push-up", 3, "6–12", 120, "Chest, triceps", "Choose a height that makes the last reps challenging but controlled.", "push up progression beginner"),
-        Exercise("Pike push-up progression", 3, "5–10", 120, "Shoulders", "Use an easy range first, then build difficulty gradually.", "beginner pike push up"),
-        Exercise("Close-grip knee or incline push-up", 2, "6–12", 90, "Triceps", "Keep elbows comfortable and avoid wrist pain.", "close grip knee push up"),
+        Exercise("Full push-up", 2, "3–6", 120, "Chest, triceps", "Repeat the full push-up at a controlled pace. Start with 3–6 clean reps per set and use incline push-ups if needed.", "standard push up proper form"),
+        Exercise("Incline push-up", 2, "8–12", 90, "Chest", "Choose a counter or desk height that lets you train with good form throughout.", "incline push up proper form"),
+        Exercise("Pike push-up progression", 2, "5–8", 120, "Shoulders", "Use an easy range first, then build difficulty gradually.", "beginner pike push up"),
         Exercise("Scapular push-up", 2, "10–15", 60, "Shoulder control", "Keep elbows straight; let shoulder blades move smoothly.", "scapular push up")
     )),
     TrainingDay(4, "SAT", "Back + Arms + Legs", "BACK • BICEPS • LIGHT LEGS", "30–40 min", "PULL B", listOf(
@@ -97,6 +97,45 @@ private val plan = listOf(
         Exercise("Glute bridge", 2, "10–15", 75, "Glutes", "Lift hips without over-arching your back.", "glute bridge exercise")
     ))
 )
+
+private val pushupLevels = listOf("0–4", "5–10", "11–20", "21+")
+
+private fun calibratedPlan(pushupLevel: String): List<TrainingDay> = basePlan.map { day ->
+    if (day.id != 1 && day.id != 3) day
+    else {
+        val starter = day.exercises.first()
+        val calibrated = when (pushupLevel) {
+            "0–4" -> starter.copy(
+                name = "Incline push-up",
+                reps = "6–10",
+                cue = "Use a sturdy wall or counter and leave 2–3 clean reps in reserve. Progress toward full push-ups gradually.",
+                videoQuery = "beginner incline push up progression"
+            )
+            "11–20" -> starter.copy(
+                name = "Full push-up",
+                sets = 3,
+                reps = "6–12",
+                cue = "Build toward three sets of 12 clean full push-ups, keeping 2–3 repetitions in reserve."
+            )
+            "21+" -> starter.copy(
+                name = "Controlled-tempo full push-up",
+                sets = 3,
+                reps = "8–15",
+                cue = "Use a controlled lowering phase and a full comfortable range; do not chase failure.",
+                videoQuery = "tempo push up proper form"
+            )
+            else -> starter // 5–10 consecutive full push-ups: start with 2 x 3–6
+        }
+        day.copy(exercises = listOf(calibrated) + day.exercises.drop(1))
+    }
+}
+
+private fun pushupProgression(level: String): String = when (level) {
+    "0–4" -> "Begin with 2 × 6–10 incline push-ups. Lower the incline gradually. Switch to the 5–10 level when you can complete at least 5 clean full push-ups."
+    "5–10" -> "Start with 2 × 3–6 full push-ups on Monday and Thursday. Add a clean rep when possible. Once 2 × 6 is comfortable across two workouts, work toward 2 × 8–10. Re-test and choose 11–20 only after you can do at least 11 full reps in one clean set."
+    "11–20" -> "Build from 3 × 6 toward 3 × 12 controlled full push-ups. When comfortable, try tempo reps, then update your level after re-testing your maximum."
+    else -> "Aim for 3 × 8–15 controlled-tempo full push-ups, keeping clean form and around 2–3 reps in reserve. Progress gradually."
+}
 
 private fun todayIndex(): Int = when (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
     Calendar.MONDAY -> 0
@@ -112,6 +151,10 @@ private fun todayKey(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).forma
 fun GainTrackV2Screen() {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("gaintrack_v2", 0) }
+    var pushupLevel by rememberSaveable {
+        mutableStateOf(prefs.getString("pushupLevel", "5–10")?.takeIf { it in pushupLevels } ?: "5–10")
+    }
+    val plan = remember(pushupLevel) { calibratedPlan(pushupLevel) }
     var tab by rememberSaveable { mutableStateOf(0) }
     var selectedDay by rememberSaveable { mutableIntStateOf(todayIndex().coerceAtLeast(0)) }
     var activeWorkout by rememberSaveable { mutableStateOf(false) }
@@ -166,6 +209,8 @@ fun GainTrackV2Screen() {
             } else {
                 when (tab) {
                     0 -> HomeTab(
+                        plan = plan,
+                        pushupLevel = pushupLevel,
                         selectedDay = selectedDay,
                         doneSet = doneSet,
                         weekCount = weekCount,
@@ -176,6 +221,8 @@ fun GainTrackV2Screen() {
                         onProfile = { showProfile = true }
                     )
                     1 -> PlanTab(
+                        plan = plan,
+                        pushupLevel = pushupLevel,
                         selectedDay = selectedDay,
                         doneSet = doneSet,
                         onSelect = { selectedDay = it },
@@ -207,7 +254,33 @@ fun GainTrackV2Screen() {
                     Text("Starting weight: 47 kg", color = White)
                     Text("Height: 167 cm", color = White)
                     Text("BMI: 16.9", color = Lime, fontWeight = FontWeight.Bold)
-                    Text("Your plan prioritises gradual strength progress, clean technique and recovery. A BMI below 18.5 is considered underweight; consider a healthcare check-in, especially if your weight has been falling without trying.", color = Muted, fontSize = 12.sp)
+                    Text("Full push-up ability: $pushupLevel clean reps", color = Lime, fontWeight = FontWeight.Bold)
+                    Text("Update your level when you can reliably do more clean full push-ups.", color = Muted, fontSize = 12.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pushupLevels.take(2).forEach { level ->
+                            FilterChip(
+                                selected = pushupLevel == level,
+                                onClick = {
+                                    pushupLevel = level
+                                    prefs.edit().putString("pushupLevel", level).apply()
+                                },
+                                label = { Text("$level reps") }
+                            )
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pushupLevels.drop(2).forEach { level ->
+                            FilterChip(
+                                selected = pushupLevel == level,
+                                onClick = {
+                                    pushupLevel = level
+                                    prefs.edit().putString("pushupLevel", level).apply()
+                                },
+                                label = { Text("$level reps") }
+                            )
+                        }
+                    }
+                    Text("Train with control and allow recovery. With a BMI under 18.5, consider a healthcare assessment if your weight is low or falling unexpectedly.", color = Muted, fontSize = 12.sp)
                 }
             },
             confirmButton = { TextButton(onClick = { showProfile = false }) { Text("Close", color = Lime) } }
@@ -217,6 +290,8 @@ fun GainTrackV2Screen() {
 
 @Composable
 private fun HomeTab(
+    plan: List<TrainingDay>,
+    pushupLevel: String,
     selectedDay: Int,
     doneSet: Set<String>,
     weekCount: Int,
@@ -256,7 +331,9 @@ private fun HomeTab(
                 }
                 Spacer(Modifier.height(14.dp))
                 Text("4-day no-equipment strength plan", color = White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text("Chest • Arms • Shoulders • Full body", color = Muted, fontSize = 12.sp)
+                Text("Chest • Arms • Shoulders • Light legs", color = Muted, fontSize = 12.sp)
+                Spacer(Modifier.height(8.dp))
+                Text("Full push-up level: $pushupLevel reps", color = Aqua, fontSize = 12.sp, fontWeight = FontWeight.Medium)
             }
         }
         Spacer(Modifier.height(22.dp))
@@ -344,11 +421,11 @@ private fun DayRow(day: TrainingDay, isSelected: Boolean, isDone: Boolean, onCli
 }
 
 @Composable
-private fun PlanTab(selectedDay: Int, doneSet: Set<String>, onSelect: (Int) -> Unit, onStart: (Int) -> Unit) {
+private fun PlanTab(plan: List<TrainingDay>, pushupLevel: String, selectedDay: Int, doneSet: Set<String>, onSelect: (Int) -> Unit, onStart: (Int) -> Unit) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
         Text("THE PROGRAM", color = Lime, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
         Text("Your 4-day split", color = White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
-        Text("A balanced beginner plan with extra attention to chest, arms and shoulders.", color = Muted, fontSize = 13.sp)
+        Text("Calibrated for $pushupLevel consecutive clean full push-ups. Tap your profile on Today to update the level as you get stronger.", color = Muted, fontSize = 13.sp)
         Spacer(Modifier.height(18.dp))
         plan.forEachIndexed { index, day ->
             DayRow(day, selectedDay == index, doneSet.contains(todayKey() + "|" + day.id)) { onSelect(index) }
@@ -379,7 +456,7 @@ private fun PlanTab(selectedDay: Int, doneSet: Set<String>, onSelect: (Int) -> U
         }
         Spacer(Modifier.height(10.dp))
         Text("Progression rule", color = White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-        Text("Start with 1–3 clean reps in reserve. Add reps first; when all sets reach the top of the range twice, choose a harder variation or apply stronger self-resistance. Do not train through sharp pain.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+        Text(pushupProgression(pushupLevel) + " Keep about 2–3 clean reps in reserve and avoid sharp pain.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
         Spacer(Modifier.height(20.dp))
     }
 }
