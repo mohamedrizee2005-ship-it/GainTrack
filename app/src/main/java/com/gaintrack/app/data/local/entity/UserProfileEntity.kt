@@ -8,7 +8,7 @@ data class UserProfileEntity(
     @PrimaryKey val id: Int = 1,
     val currentWeightKg: Double = 47.0,
     val targetWeightKg: Double = 55.0,
-    val heightCm: Double = 168.0,
+    val heightCm: Double = 167.0,
     val calorieTarget: Int = 2100,
     val proteinTarget: Int = 85,
     val fitnessLevel: String = "Beginner",

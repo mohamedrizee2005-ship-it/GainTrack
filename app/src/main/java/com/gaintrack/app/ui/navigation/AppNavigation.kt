@@ -2,6 +2,8 @@ package com.gaintrack.app.ui.navigation
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -17,7 +19,7 @@ import com.gaintrack.app.ui.screens.v2.GainTrackV2Screen
 fun AppNavigation(app: GainTrackApp) {
     var dashboard by rememberSaveable { mutableIntStateOf(0) }
     Surface(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding()) {
             TabRow(selectedTabIndex = dashboard) {
                 Tab(selected = dashboard == 0, onClick = { dashboard = 0 }, text = { Text("WORKOUT") })
                 Tab(selected = dashboard == 1, onClick = { dashboard = 1 }, text = { Text("NUTRITION") })

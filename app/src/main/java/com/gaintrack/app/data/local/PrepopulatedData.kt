@@ -16,7 +16,7 @@ object PrepopulatedData {
         id = 1,
         currentWeightKg = 47.0,
         targetWeightKg = 55.0,
-        heightCm = 168.0,
+        heightCm = 167.0,
         calorieTarget = 2100, // Safe moderate surplus for 47kg beginner
         proteinTarget = 85,   // ~1.8g/kg body weight
         fitnessLevel = "Beginner",

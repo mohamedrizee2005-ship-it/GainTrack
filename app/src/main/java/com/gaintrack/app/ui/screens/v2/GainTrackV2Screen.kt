@@ -70,52 +70,79 @@ private data class TrainingDay(
     val exercises: List<Exercise>
 )
 
-private val plan = listOf(
-    TrainingDay(1, "MON", "Chest + Triceps", "CHEST • TRICEPS • FRONT SHOULDERS", "30–35 min", "PUSH A", listOf(
-        Exercise("Incline push-up", 3, "8–12", 75, "Chest, triceps", "Hands on a stable wall or counter. Keep your body straight and lower your chest between your hands.", "incline push up proper form beginner"),
-        Exercise("Knee push-up", 3, "6–10", 90, "Chest, triceps", "Keep a straight line from knees to head. Lower under control; do not let your hips sag.", "knee push up proper form"),
-        Exercise("Close-grip knee push-up", 2, "6–10", 75, "Triceps, inner chest", "Hands just inside shoulder width, elbows angled back. Use an easier incline if needed.", "close grip knee push up triceps form"),
-        Exercise("Pike hold", 2, "20–30 sec", 60, "Shoulders", "Push the floor away and keep your neck relaxed. Stop if you feel shoulder pain.", "pike push up hold shoulder exercise")
+private val basePlan = listOf(
+    TrainingDay(1, "MON", "Chest + Triceps", "CHEST • SHOULDERS • TRICEPS", "30–40 min", "PUSH A", listOf(
+        Exercise("Full push-up", 2, "3–6", 120, "Chest, triceps", "You can do 5–10 full reps consecutively. Start with 3–6 controlled reps per set and leave 2–3 good reps in reserve. If your form breaks, use an incline.", "standard push up beginner proper form"),
+        Exercise("Incline push-up", 2, "8–12", 90, "Chest, triceps", "Use a stable counter. Lower slowly with a straight body, and choose an incline that makes the last reps challenging.", "incline push up proper form"),
+        Exercise("Close-grip incline push-up", 2, "8–12", 90, "Triceps", "Bring hands slightly closer and use a comfortable elbow angle.", "close grip incline push up"),
+        Exercise("Pike push-up progression", 2, "5–8", 120, "Shoulders", "Move head forward and down; use partial range if needed and avoid neck pressure.", "pike push up beginner")
     )),
-    TrainingDay(2, "TUE", "Back + Biceps + Forearms", "BACK • BICEPS • GRIP", "30–35 min", "PULL A", listOf(
-        Exercise("Prone W raise", 3, "10–14", 60, "Upper back, rear shoulders", "Lie face down, elbows bent in a W. Lift hands and elbows gently; squeeze shoulder blades.", "prone W raise exercise form"),
-        Exercise("Prone reverse snow angel", 3, "8–12", 60, "Upper back, rear shoulders", "Keep chest lightly lifted and sweep arms slowly without shrugging.", "prone reverse snow angel exercise"),
-        Exercise("Self-resisted biceps curl", 3, "8–12 each arm", 60, "Biceps", "One hand resists the other arm as it curls up and lowers slowly. Make the working arm do the work.", "self resisted biceps curl exercise"),
-        Exercise("Palm-down wrist curl (self-resisted)", 2, "10–15 each", 45, "Forearms", "Use your opposite hand to provide gentle resistance through wrist movement.", "self resisted wrist extension flexion exercise"),
-        Exercise("Finger spread + fist", 2, "15–20", 30, "Hands, finger control", "Spread fingers wide, hold briefly, then close into a relaxed fist. Do not squeeze painfully.", "finger extension finger spread hand exercise")
+    TrainingDay(2, "TUE", "Back + Biceps", "BACK • BICEPS • CORE", "30–35 min", "PULL A", listOf(
+        Exercise("Self-resisted one-arm row", 3, "8–12 each", 90, "Back, biceps", "Resist your pulling arm with the other hand at the wrist. Pull elbow back slowly, keeping your torso stable.", "self resisted row no equipment"),
+        Exercise("Prone W raise", 2, "10–15", 60, "Rear shoulders, upper back", "Lift elbows gently while face down. Keep neck neutral.", "prone W raise exercise"),
+        Exercise("Self-resisted biceps curl", 3, "8–12 each", 90, "Biceps", "One hand resists the other throughout the curling movement. Keep it challenging without pain.", "self resisted biceps curl"),
+        Exercise("Dead bug", 2, "8–12 each", 60, "Core", "Keep your trunk stable as the opposite arm and leg extend.", "dead bug exercise")
     )),
-    TrainingDay(3, "WED", "Legs + Core + Mobility", "LEGS • CORE • RECOVERY SUPPORT", "25–30 min", "FOUNDATION", listOf(
-        Exercise("Bodyweight squat", 3, "10–15", 75, "Quads, glutes", "Sit hips back, keep feet planted and knees tracking over toes.", "bodyweight squat proper form"),
-        Exercise("Reverse lunge", 2, "8 each leg", 75, "Legs, glutes", "Step back softly and lower only as far as comfortable. Hold a wall for balance if needed.", "reverse lunge beginner proper form"),
-        Exercise("Glute bridge", 3, "12–15", 60, "Glutes, hips", "Drive through your feet, squeeze glutes at the top and avoid over-arching your back.", "glute bridge proper form"),
-        Exercise("Dead bug", 3, "8 each side", 45, "Core", "Keep lower back gently against the floor while moving opposite arm and leg.", "dead bug exercise proper form"),
-        Exercise("Bird dog", 2, "8 each side", 45, "Core, back stability", "Reach long without rotating your hips; move slowly.", "bird dog exercise proper form")
+    TrainingDay(3, "THU", "Chest + Shoulders", "CHEST • SHOULDERS • TRICEPS", "30–40 min", "PUSH B", listOf(
+        Exercise("Full push-up", 2, "3–6", 120, "Chest, triceps", "Repeat the full push-up at a controlled pace. Start with 3–6 clean reps per set and use incline push-ups if needed.", "standard push up proper form"),
+        Exercise("Incline push-up", 2, "8–12", 90, "Chest", "Choose a counter or desk height that lets you train with good form throughout.", "incline push up proper form"),
+        Exercise("Pike push-up progression", 2, "5–8", 120, "Shoulders", "Use an easy range first, then build difficulty gradually.", "beginner pike push up"),
+        Exercise("Scapular push-up", 2, "10–15", 60, "Shoulder control", "Keep elbows straight; let shoulder blades move smoothly.", "scapular push up")
     )),
-    TrainingDay(4, "THU", "Chest + Shoulders", "CHEST • SHOULDERS • TRICEPS", "30–35 min", "PUSH B", listOf(
-        Exercise("Standard push-up progression", 3, "5–10", 90, "Chest, triceps", "Choose wall, incline, knee or full push-up so every rep stays controlled.", "push up progression beginner proper form"),
-        Exercise("Wide incline push-up", 2, "8–12", 75, "Chest", "Use a comfortable wider hand position; keep elbows below shoulder height.", "wide incline push up proper form"),
-        Exercise("Pike push-up (incline or partial)", 2, "5–8", 90, "Shoulders, triceps", "Move head forward and down between hands. Use a small range at first.", "beginner pike push up tutorial"),
-        Exercise("Scapular push-up", 2, "10–12", 45, "Shoulder control, serratus", "Keep elbows straight; let chest sink slightly, then push the floor away.", "scapular push up tutorial")
-    )),
-    TrainingDay(5, "FRI", "Arms + Back + Full Body", "BICEPS • TRICEPS • FOREARMS • BACK", "30–35 min", "PULL B + ARMS", listOf(
-        Exercise("Self-resisted biceps curl", 3, "10–12 each arm", 60, "Biceps", "Resist with the opposite hand on both the lifting and lowering phase.", "self resisted biceps curl exercise"),
-        Exercise("Self-resisted triceps extension", 3, "10–12 each arm", 60, "Triceps", "Use your other hand to resist as you straighten the working elbow. Keep shoulder relaxed.", "self resisted triceps extension exercise"),
-        Exercise("Prone Y-T raise", 2, "8 each shape", 60, "Upper back, rear shoulders", "Use small, slow lifts; keep forehead down and avoid shrugging.", "prone Y T raise exercise"),
-        Exercise("Wrist flexion + extension", 2, "12 each direction", 45, "Forearms, wrists", "Use the opposite palm for light resistance. Move only through a pain-free range.", "self resisted wrist strengthening exercise"),
-        Exercise("Wall push-up hold", 2, "20–30 sec", 45, "Chest, triceps, wrists", "Hold a strong straight-body position against the wall; keep wrists comfortable.", "wall push up isometric hold")
+    TrainingDay(4, "SAT", "Back + Arms + Legs", "BACK • BICEPS • LIGHT LEGS", "30–40 min", "PULL B", listOf(
+        Exercise("Self-resisted one-arm row", 3, "8–12 each", 90, "Back, biceps", "Use steady opposite-hand resistance; do not twist your torso.", "self resisted row no equipment"),
+        Exercise("Prone reverse snow angel", 2, "10–15", 60, "Upper back", "Move arms slowly and keep neck relaxed.", "prone reverse snow angel exercise"),
+        Exercise("Self-resisted biceps curl", 2, "8–12 each", 90, "Biceps", "Control both phases against firm hand resistance.", "self resisted biceps curl"),
+        Exercise("Bodyweight squat", 2, "10–15", 90, "Legs, glutes", "Use comfortable depth with slow controlled repetitions.", "bodyweight squat proper form"),
+        Exercise("Glute bridge", 2, "10–15", 75, "Glutes", "Lift hips without over-arching your back.", "glute bridge exercise")
     ))
 )
 
-private fun todayIndex(): Int {
-    val day = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
-    return when (day) {
-        Calendar.MONDAY -> 0
-        Calendar.TUESDAY -> 1
-        Calendar.WEDNESDAY -> 2
-        Calendar.THURSDAY -> 3
-        Calendar.FRIDAY -> 4
-        else -> 0
+private val pushupLevels = listOf("0–4", "5–10", "11–20", "21+")
+
+private fun calibratedPlan(pushupLevel: String): List<TrainingDay> = basePlan.map { day ->
+    if (day.id != 1 && day.id != 3) day
+    else {
+        val starter = day.exercises.first()
+        val calibrated = when (pushupLevel) {
+            "0–4" -> starter.copy(
+                name = "Incline push-up",
+                reps = "6–10",
+                cue = "Use a sturdy wall or counter and leave 2–3 clean reps in reserve. Progress toward full push-ups gradually.",
+                videoQuery = "beginner incline push up progression"
+            )
+            "11–20" -> starter.copy(
+                name = "Full push-up",
+                sets = 3,
+                reps = "6–12",
+                cue = "Build toward three sets of 12 clean full push-ups, keeping 2–3 repetitions in reserve."
+            )
+            "21+" -> starter.copy(
+                name = "Controlled-tempo full push-up",
+                sets = 3,
+                reps = "8–15",
+                cue = "Use a controlled lowering phase and a full comfortable range; do not chase failure.",
+                videoQuery = "tempo push up proper form"
+            )
+            else -> starter // 5–10 consecutive full push-ups: start with 2 x 3–6
+        }
+        day.copy(exercises = listOf(calibrated) + day.exercises.drop(1))
     }
+}
+
+private fun pushupProgression(level: String): String = when (level) {
+    "0–4" -> "Begin with 2 × 6–10 incline push-ups. Lower the incline gradually. Switch to the 5–10 level when you can complete at least 5 clean full push-ups."
+    "5–10" -> "Start with 2 × 3–6 full push-ups on Monday and Thursday. Add a clean rep when possible. Once 2 × 6 is comfortable across two workouts, work toward 2 × 8–10. Re-test and choose 11–20 only after you can do at least 11 full reps in one clean set."
+    "11–20" -> "Build from 3 × 6 toward 3 × 12 controlled full push-ups. When comfortable, try tempo reps, then update your level after re-testing your maximum."
+    else -> "Aim for 3 × 8–15 controlled-tempo full push-ups, keeping clean form and around 2–3 reps in reserve. Progress gradually."
+}
+
+private fun todayIndex(): Int = when (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
+    Calendar.MONDAY -> 0
+    Calendar.TUESDAY -> 1
+    Calendar.THURSDAY -> 2
+    Calendar.SATURDAY -> 3
+    else -> -1
 }
 
 private fun todayKey(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
@@ -124,8 +151,12 @@ private fun todayKey(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).forma
 fun GainTrackV2Screen() {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("gaintrack_v2", 0) }
+    var pushupLevel by rememberSaveable {
+        mutableStateOf(prefs.getString("pushupLevel", "5–10")?.takeIf { it in pushupLevels } ?: "5–10")
+    }
+    val plan = remember(pushupLevel) { calibratedPlan(pushupLevel) }
     var tab by rememberSaveable { mutableStateOf(0) }
-    var selectedDay by rememberSaveable { mutableIntStateOf(todayIndex()) }
+    var selectedDay by rememberSaveable { mutableIntStateOf(todayIndex().coerceAtLeast(0)) }
     var activeWorkout by rememberSaveable { mutableStateOf(false) }
     var doneKeys by remember { mutableStateOf(prefs.getString("completed", "") ?: "") }
     var checkedSets by rememberSaveable { mutableStateOf("") }
@@ -150,6 +181,7 @@ fun GainTrackV2Screen() {
     }
 
     fun finishWorkout() {
+        if (completedInSession != setTotal) return
         val key = todayKey() + "|" + selected.id
         if (key !in doneSet) {
             doneKeys = (doneSet + key).joinToString(",")
@@ -177,6 +209,8 @@ fun GainTrackV2Screen() {
             } else {
                 when (tab) {
                     0 -> HomeTab(
+                        plan = plan,
+                        pushupLevel = pushupLevel,
                         selectedDay = selectedDay,
                         doneSet = doneSet,
                         weekCount = weekCount,
@@ -187,6 +221,8 @@ fun GainTrackV2Screen() {
                         onProfile = { showProfile = true }
                     )
                     1 -> PlanTab(
+                        plan = plan,
+                        pushupLevel = pushupLevel,
                         selectedDay = selectedDay,
                         doneSet = doneSet,
                         onSelect = { selectedDay = it },
@@ -218,7 +254,33 @@ fun GainTrackV2Screen() {
                     Text("Starting weight: 47 kg", color = White)
                     Text("Height: 167 cm", color = White)
                     Text("BMI: 16.9", color = Lime, fontWeight = FontWeight.Bold)
-                    Text("Your plan prioritises gradual strength progress, clean technique and recovery. A BMI below 18.5 is considered underweight; consider a healthcare check-in, especially if your weight has been falling without trying.", color = Muted, fontSize = 12.sp)
+                    Text("Full push-up ability: $pushupLevel clean reps", color = Lime, fontWeight = FontWeight.Bold)
+                    Text("Update your level when you can reliably do more clean full push-ups.", color = Muted, fontSize = 12.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pushupLevels.take(2).forEach { level ->
+                            FilterChip(
+                                selected = pushupLevel == level,
+                                onClick = {
+                                    pushupLevel = level
+                                    prefs.edit().putString("pushupLevel", level).apply()
+                                },
+                                label = { Text("$level reps") }
+                            )
+                        }
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        pushupLevels.drop(2).forEach { level ->
+                            FilterChip(
+                                selected = pushupLevel == level,
+                                onClick = {
+                                    pushupLevel = level
+                                    prefs.edit().putString("pushupLevel", level).apply()
+                                },
+                                label = { Text("$level reps") }
+                            )
+                        }
+                    }
+                    Text("Train with control and allow recovery. With a BMI under 18.5, consider a healthcare assessment if your weight is low or falling unexpectedly.", color = Muted, fontSize = 12.sp)
                 }
             },
             confirmButton = { TextButton(onClick = { showProfile = false }) { Text("Close", color = Lime) } }
@@ -228,6 +290,8 @@ fun GainTrackV2Screen() {
 
 @Composable
 private fun HomeTab(
+    plan: List<TrainingDay>,
+    pushupLevel: String,
     selectedDay: Int,
     doneSet: Set<String>,
     weekCount: Int,
@@ -237,7 +301,8 @@ private fun HomeTab(
     onProgress: () -> Unit,
     onProfile: () -> Unit
 ) {
-    val today = plan[selectedDay]
+    val isRestDay = todayIndex() < 0
+    val today = plan[if (isRestDay) selectedDay else todayIndex()]
     val todayDone = doneSet.contains(todayKey() + "|" + today.id)
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp)) {
         Spacer(Modifier.height(22.dp))
@@ -265,50 +330,52 @@ private fun HomeTab(
                     ProfileMetric("21", "YEARS", Modifier.weight(1f))
                 }
                 Spacer(Modifier.height(14.dp))
-                Text("5-day bodyweight strength plan", color = White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text("Chest • Arms • Shoulders • Full body", color = Muted, fontSize = 12.sp)
+                Text("4-day no-equipment strength plan", color = White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                Text("Chest • Arms • Shoulders • Light legs", color = Muted, fontSize = 12.sp)
+                Spacer(Modifier.height(8.dp))
+                Text("Full push-up level: $pushupLevel reps", color = Aqua, fontSize = 12.sp, fontWeight = FontWeight.Medium)
             }
         }
         Spacer(Modifier.height(22.dp))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("TODAY'S SESSION", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-            Text("WEEK $weekCount / 5", color = Lime, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(if (isRestDay) "RECOVERY DAY" else "TODAY'S SESSION", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+            Text("THIS WEEK $weekCount / 4", color = Lime, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(10.dp))
         Surface(shape = RoundedCornerShape(24.dp), color = Panel, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(18.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(shape = RoundedCornerShape(10.dp), color = Lime.copy(alpha = .13f)) {
-                        Text(today.day, color = Lime, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp))
+                        Text(if (isRestDay) "REST" else today.day, color = Lime, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(today.title, color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                        Text(today.focus, color = Muted, fontSize = 10.sp, letterSpacing = .4.sp)
+                        Text(if (isRestDay) "Recovery day" else today.title, color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Text(if (isRestDay) "Eat enough, sleep and recover." else today.focus, color = Muted, fontSize = 10.sp, letterSpacing = .4.sp)
                     }
                 }
                 Spacer(Modifier.height(15.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Schedule, null, tint = Muted, modifier = Modifier.size(15.dp))
-                    Text("  ${today.duration}  •  ${today.exercises.size} movements", color = Muted, fontSize = 12.sp)
+                    Text(if (isRestDay) "  No workout scheduled • Focus on recovery" else "  ${today.duration}  •  ${today.exercises.size} movements", color = Muted, fontSize = 12.sp)
                 }
                 Spacer(Modifier.height(16.dp))
                 Button(
-                    onClick = { onStart(selectedDay) },
+                    onClick = { if (isRestDay) onPlan() else onStart(todayIndex()) },
                     modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Lime, contentColor = Ink)
                 ) {
                     Icon(if (todayDone) Icons.Default.RestartAlt else Icons.Default.PlayArrow, null)
                     Spacer(Modifier.width(8.dp))
-                    Text(if (todayDone) "REPEAT SESSION" else "START WORKOUT", fontWeight = FontWeight.ExtraBold, letterSpacing = .6.sp)
+                    Text(if (isRestDay) "VIEW WORKOUT PLAN" else if (todayDone) "REPEAT SESSION" else "START WORKOUT", fontWeight = FontWeight.ExtraBold, letterSpacing = .6.sp)
                 }
-                if (todayDone) Text("Session completed today — repeat only if you feel recovered.", color = Aqua, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp))
+                if (todayDone && !isRestDay) Text("Session completed today — repeat only if you feel recovered.", color = Aqua, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp))
             }
         }
         Spacer(Modifier.height(22.dp))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("YOUR 5-DAY SPLIT", color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+            Text("YOUR 4-DAY SPLIT", color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
             TextButton(onClick = onPlan) { Text("View plan", color = Lime) }
         }
         plan.forEachIndexed { index, day ->
@@ -322,7 +389,7 @@ private fun HomeTab(
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text("Recovery is part of the plan", color = White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                    Text("Rest on Saturday and Sunday. Muscles adapt between sessions.", color = Muted, fontSize = 12.sp)
+                    Text("Recover on Wednesday, Friday and Sunday. Muscles rebuild between sessions.", color = Muted, fontSize = 12.sp)
                 }
             }
         }
@@ -354,11 +421,11 @@ private fun DayRow(day: TrainingDay, isSelected: Boolean, isDone: Boolean, onCli
 }
 
 @Composable
-private fun PlanTab(selectedDay: Int, doneSet: Set<String>, onSelect: (Int) -> Unit, onStart: (Int) -> Unit) {
+private fun PlanTab(plan: List<TrainingDay>, pushupLevel: String, selectedDay: Int, doneSet: Set<String>, onSelect: (Int) -> Unit, onStart: (Int) -> Unit) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp)) {
         Text("THE PROGRAM", color = Lime, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
-        Text("Your 5-day split", color = White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
-        Text("A balanced beginner plan with extra attention to chest, arms and shoulders.", color = Muted, fontSize = 13.sp)
+        Text("Your 4-day split", color = White, fontSize = 28.sp, fontWeight = FontWeight.ExtraBold)
+        Text("Calibrated for $pushupLevel consecutive clean full push-ups. Tap your profile on Today to update the level as you get stronger.", color = Muted, fontSize = 13.sp)
         Spacer(Modifier.height(18.dp))
         plan.forEachIndexed { index, day ->
             DayRow(day, selectedDay == index, doneSet.contains(todayKey() + "|" + day.id)) { onSelect(index) }
@@ -389,7 +456,7 @@ private fun PlanTab(selectedDay: Int, doneSet: Set<String>, onSelect: (Int) -> U
         }
         Spacer(Modifier.height(10.dp))
         Text("Progression rule", color = White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-        Text("Start with the easiest variation that lets you complete every rep with good form. When you reach the top of the rep range on every set comfortably, move to a slightly harder variation or slow the lowering phase. Finish most sets with about 2–3 good reps still possible; do not force painful reps.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+        Text(pushupProgression(pushupLevel) + " Keep about 2–3 clean reps in reserve and avoid sharp pain.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
         Spacer(Modifier.height(20.dp))
     }
 }
@@ -473,7 +540,7 @@ private fun WorkoutSessionView(
             Column(Modifier.padding(16.dp)) {
                 Text("$completed of $total sets completed", color = Muted, fontSize = 11.sp)
                 Spacer(Modifier.height(8.dp))
-                Button(onClick = onFinish, enabled = completed > 0, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp), colors = ButtonDefaults.buttonColors(containerColor = Lime, contentColor = Ink)) {
+                Button(onClick = onFinish, enabled = completed == total, modifier = Modifier.fillMaxWidth().height(52.dp), shape = RoundedCornerShape(15.dp), colors = ButtonDefaults.buttonColors(containerColor = Lime, contentColor = Ink)) {
                     Text("FINISH SESSION", fontWeight = FontWeight.ExtraBold)
                 }
             }
@@ -496,24 +563,32 @@ private fun ProgressTab(doneSet: Set<String>, weekCount: Int, onBackHome: () -> 
         Spacer(Modifier.height(14.dp))
         Surface(shape = RoundedCornerShape(22.dp), color = Panel, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(18.dp)) {
-                Text("12-WEEK STRENGTH JOURNEY", color = Aqua, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("YOUR LAST 12 WEEKS", color = Aqua, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Spacer(Modifier.height(12.dp))
                 repeat(12) { week ->
+                    val startOfWeek = Calendar.getInstance().apply {
+                        firstDayOfWeek = Calendar.MONDAY
+                        val daysSinceMonday = (get(Calendar.DAY_OF_WEEK) + 5) % 7
+                        add(Calendar.DAY_OF_YEAR, -daysSinceMonday - 7 * week)
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    val endOfWeek = (startOfWeek.clone() as Calendar).apply {
+                        add(Calendar.DAY_OF_YEAR, 7)
+                    }
+                    val format = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                     val count = doneSet.count { key ->
-                        val date = key.substringBefore("|")
-                        val parsed = runCatching { SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(date) }.getOrNull()
-                        if (parsed == null) false else {
-                            val cal = Calendar.getInstance().apply { time = parsed }
-                            val now = Calendar.getInstance()
-                            cal.get(Calendar.WEEK_OF_YEAR) == now.get(Calendar.WEEK_OF_YEAR) && cal.get(Calendar.YEAR) == now.get(Calendar.YEAR) && week == 0
-                        }
+                        val date = runCatching { format.parse(key.substringBefore("|")) }.getOrNull()
+                        date != null && !date.before(startOfWeek.time) && date.before(endOfWeek.time)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-                        Text("W${week + 1}", color = Muted, fontSize = 10.sp, modifier = Modifier.width(32.dp))
+                        Text(if (week == 0) "Now" else "-$week", color = Muted, fontSize = 10.sp, modifier = Modifier.width(32.dp))
                         Box(Modifier.weight(1f).height(7.dp).clip(CircleShape).background(Panel2)) {
-                            if (week == 0 && count > 0) Box(Modifier.fillMaxWidth((count / 5f).coerceIn(0f, 1f)).fillMaxHeight().background(Lime))
+                            if (count > 0) Box(Modifier.fillMaxWidth((count / 4f).coerceIn(0f, 1f)).fillMaxHeight().background(Lime))
                         }
-                        Text(if (week == 0) "$count/5" else "—", color = Muted, fontSize = 10.sp, modifier = Modifier.width(34.dp))
+                        Text("$count/4", color = Muted, fontSize = 10.sp, modifier = Modifier.width(34.dp))
                     }
                 }
                 Text("Your completed sessions are saved on this phone. The weekly view starts filling as you train.", color = Muted, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.padding(top = 10.dp))
