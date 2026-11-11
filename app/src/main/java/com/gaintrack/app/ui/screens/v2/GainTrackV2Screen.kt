@@ -2,6 +2,9 @@ package com.gaintrack.app.ui.screens.v2
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,6 +27,8 @@ import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SelfImprovement
 import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -40,6 +45,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 private val Ink = Color(0xFF080B13)
 private val Panel = Color(0xFF141B2A)
@@ -148,7 +154,7 @@ private fun todayIndex(): Int = when (Calendar.getInstance().get(Calendar.DAY_OF
 private fun todayKey(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
 @Composable
-fun GainTrackV2Screen() {
+fun GainTrackV2Screen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("gaintrack_v2", 0) }
     var pushupLevel by rememberSaveable {
@@ -156,24 +162,40 @@ fun GainTrackV2Screen() {
     }
     val plan = remember(pushupLevel) { calibratedPlan(pushupLevel) }
     var tab by rememberSaveable { mutableStateOf(0) }
-    var selectedDay by rememberSaveable { mutableIntStateOf(todayIndex().coerceAtLeast(0)) }
+    var selectedDay by rememberSaveable {
+        mutableIntStateOf(prefs.getInt("draft_day", todayIndex().coerceAtLeast(0)).coerceIn(0, 3))
+    }
     var activeWorkout by rememberSaveable { mutableStateOf(false) }
     var doneKeys by remember { mutableStateOf(prefs.getString("completed", "") ?: "") }
-    var checkedSets by rememberSaveable { mutableStateOf("") }
+    var checkedSets by rememberSaveable { mutableStateOf(prefs.getString("draft_sets", "") ?: "") }
     var showProfile by rememberSaveable { mutableStateOf(false) }
 
     val doneSet = remember(doneKeys) { doneKeys.split(",").filter { it.isNotBlank() }.toSet() }
     val weekCount = remember(doneSet) {
         val cal = Calendar.getInstance()
-        cal.firstDayOfWeek = Calendar.MONDAY
-        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        val daysSinceMonday = (cal.get(Calendar.DAY_OF_WEEK) + 5) % 7
+        cal.add(Calendar.DAY_OF_YEAR, -daysSinceMonday)
         val monday = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
-        doneSet.count { it.substringBefore("|") >= monday }
+        cal.add(Calendar.DAY_OF_YEAR, 7)
+        val nextMonday = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.time)
+        doneSet.count { item ->
+            val date = item.substringBefore("|")
+            date >= monday && date < nextMonday
+        }
     }
     val selected = plan[selectedDay]
     val exerciseDone = checkedSets.split(",").filter { it.isNotBlank() }.toSet()
     val setTotal = selected.exercises.sumOf { it.sets }
     val completedInSession = exerciseDone.size.coerceAtMost(setTotal)
+
+    fun beginWorkout(day: Int) {
+        val next = day.coerceIn(0, plan.lastIndex)
+        checkedSets = if (prefs.getInt("draft_day", -1) == next)
+            prefs.getString("draft_sets", "") ?: "" else ""
+        selectedDay = next
+        prefs.edit().putInt("draft_day", next).putString("draft_sets", checkedSets).apply()
+        activeWorkout = true
+    }
 
     fun openVideo(query: String) {
         val url = "https://www.youtube.com/results?search_query=" + Uri.encode(query)
@@ -189,10 +211,11 @@ fun GainTrackV2Screen() {
         }
         activeWorkout = false
         checkedSets = ""
+        prefs.edit().remove("draft_sets").remove("draft_day").apply()
         tab = 2
     }
 
-    Surface(modifier = Modifier.fillMaxSize(), color = Ink) {
+    Surface(modifier = modifier.fillMaxSize(), color = Ink) {
         Column(modifier = Modifier.fillMaxSize()) {
             if (activeWorkout) {
                 WorkoutSessionView(
@@ -201,6 +224,7 @@ fun GainTrackV2Screen() {
                     onToggleSet = { key ->
                         checkedSets = if (key in exerciseDone) exerciseDone.minus(key).joinToString(",")
                         else (exerciseDone + key).joinToString(",")
+                        prefs.edit().putInt("draft_day", selectedDay).putString("draft_sets", checkedSets).apply()
                     },
                     onVideo = ::openVideo,
                     onBack = { activeWorkout = false },
@@ -214,7 +238,7 @@ fun GainTrackV2Screen() {
                         selectedDay = selectedDay,
                         doneSet = doneSet,
                         weekCount = weekCount,
-                        onStart = { selectedDay = it; checkedSets = ""; activeWorkout = true },
+                        onStart = ::beginWorkout,
                         onSelect = { selectedDay = it },
                         onPlan = { tab = 1 },
                         onProgress = { tab = 2 },
@@ -226,7 +250,7 @@ fun GainTrackV2Screen() {
                         selectedDay = selectedDay,
                         doneSet = doneSet,
                         onSelect = { selectedDay = it },
-                        onStart = { selectedDay = it; checkedSets = ""; activeWorkout = true }
+                        onStart = ::beginWorkout
                     )
                     else -> ProgressTab(
                         doneSet = doneSet,
@@ -234,7 +258,7 @@ fun GainTrackV2Screen() {
                         onBackHome = { tab = 0 }
                     )
                 }
-                NavigationBar(containerColor = Panel, contentColor = Lime) {
+                NavigationBar(containerColor = Panel, contentColor = Lime, tonalElevation = 6.dp) {
                     NavigationBarItem(selected = tab == 0, onClick = { tab = 0 }, icon = { Icon(Icons.Default.Home, null) }, label = { Text("Today") })
                     NavigationBarItem(selected = tab == 1, onClick = { tab = 1 }, icon = { Icon(Icons.Default.FitnessCenter, null) }, label = { Text("Plan") })
                     NavigationBarItem(selected = tab == 2, onClick = { tab = 2 }, icon = { Icon(Icons.Default.BarChart, null) }, label = { Text("Progress") })
@@ -309,7 +333,7 @@ private fun HomeTab(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
             Column {
                 Text("GAINTRACK", color = Lime, fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = 2.sp)
-                Text("Build strength.\nBuild yourself.", color = White, fontSize = 29.sp, lineHeight = 33.sp, fontWeight = FontWeight.ExtraBold)
+                Text("Build strength.\nKeep showing up.", color = White, fontSize = 29.sp, lineHeight = 33.sp, fontWeight = FontWeight.ExtraBold)
             }
             Surface(onClick = onProfile, shape = CircleShape, color = Panel2) {
                 Icon(Icons.Default.Tune, "Profile", tint = Lime, modifier = Modifier.padding(13.dp).size(22.dp))
@@ -322,7 +346,7 @@ private fun HomeTab(
                 .padding(20.dp)
         ) {
             Column {
-                Text("YOUR PERSONAL START", color = Aqua, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp)
+                Text("YOUR STARTING POINT", color = Aqua, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.3.sp)
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(0.dp), modifier = Modifier.fillMaxWidth()) {
                     ProfileMetric("47", "KG", Modifier.weight(1f))
@@ -331,7 +355,7 @@ private fun HomeTab(
                 }
                 Spacer(Modifier.height(14.dp))
                 Text("4-day no-equipment strength plan", color = White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                Text("Chest • Arms • Shoulders • Light legs", color = Muted, fontSize = 12.sp)
+                Text("Simple home training, real progress", color = Muted, fontSize = 12.sp)
                 Spacer(Modifier.height(8.dp))
                 Text("Full push-up level: $pushupLevel reps", color = Aqua, fontSize = 12.sp, fontWeight = FontWeight.Medium)
             }
@@ -378,9 +402,16 @@ private fun HomeTab(
             Text("YOUR 4-DAY SPLIT", color = White, fontSize = 17.sp, fontWeight = FontWeight.Bold)
             TextButton(onClick = onPlan) { Text("View plan", color = Lime) }
         }
-        plan.forEachIndexed { index, day ->
-            DayRow(day = day, isSelected = selectedDay == index, isDone = doneSet.contains(todayKey() + "|" + day.id), onClick = { onSelect(index) })
-            Spacer(Modifier.height(8.dp))
+        // One short preview on Today. The complete schedule is on the Plan tab.
+        val preview = if (isRestDay) selectedDay else todayIndex()
+        DayRow(day = plan[preview], isSelected = true,
+            isDone = doneSet.contains(todayKey() + "|" + plan[preview].id),
+            onClick = { onSelect(preview); onPlan() })
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(onClick = onPlan, modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(14.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Lime)) {
+            Text("Explore all 4 workout days")
         }
         Spacer(Modifier.height(16.dp))
         Surface(shape = RoundedCornerShape(18.dp), color = Panel2) {
@@ -407,7 +438,10 @@ private fun ProfileMetric(value: String, label: String, modifier: Modifier) {
 
 @Composable
 private fun DayRow(day: TrainingDay, isSelected: Boolean, isDone: Boolean, onClick: () -> Unit) {
-    Surface(onClick = onClick, shape = RoundedCornerShape(16.dp), color = if (isSelected) Color(0xFF26362B) else Panel, border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) Lime.copy(alpha = .6f) else Line)) {
+    Surface(onClick = onClick, shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.animateContentSize(),
+        color = if (isSelected) Color(0xFF26362B) else Panel,
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) Lime.copy(alpha = .6f) else Line)) {
         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Text(day.day, color = if (isSelected) Lime else Muted, fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, modifier = Modifier.width(42.dp))
             Column(Modifier.weight(1f)) {
