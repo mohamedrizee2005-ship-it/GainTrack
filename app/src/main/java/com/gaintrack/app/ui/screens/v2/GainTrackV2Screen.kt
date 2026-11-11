@@ -346,7 +346,7 @@ private fun HomeTab(
             Column(Modifier.padding(18.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(shape = RoundedCornerShape(10.dp), color = Lime.copy(alpha = .13f)) {
-                        Text(today.day, color = Lime, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp))
+                        Text(if (isRestDay) "REST" else today.day, color = Lime, fontWeight = FontWeight.ExtraBold, modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp))
                     }
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
@@ -357,20 +357,20 @@ private fun HomeTab(
                 Spacer(Modifier.height(15.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Schedule, null, tint = Muted, modifier = Modifier.size(15.dp))
-                    Text("  ${today.duration}  •  ${today.exercises.size} movements", color = Muted, fontSize = 12.sp)
+                    Text(if (isRestDay) "  No workout scheduled • Focus on recovery" else "  ${today.duration}  •  ${today.exercises.size} movements", color = Muted, fontSize = 12.sp)
                 }
                 Spacer(Modifier.height(16.dp))
                 Button(
-                    onClick = { onStart(if (isRestDay) selectedDay else todayIndex()) },
+                    onClick = { if (isRestDay) onPlan() else onStart(todayIndex()) },
                     modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Lime, contentColor = Ink)
                 ) {
                     Icon(if (todayDone) Icons.Default.RestartAlt else Icons.Default.PlayArrow, null)
                     Spacer(Modifier.width(8.dp))
-                    Text(if (isRestDay) "OPTIONAL WORKOUT" else if (todayDone) "REPEAT SESSION" else "START WORKOUT", fontWeight = FontWeight.ExtraBold, letterSpacing = .6.sp)
+                    Text(if (isRestDay) "VIEW WORKOUT PLAN" else if (todayDone) "REPEAT SESSION" else "START WORKOUT", fontWeight = FontWeight.ExtraBold, letterSpacing = .6.sp)
                 }
-                if (todayDone) Text("Session completed today — repeat only if you feel recovered.", color = Aqua, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp))
+                if (todayDone && !isRestDay) Text("Session completed today — repeat only if you feel recovered.", color = Aqua, fontSize = 11.sp, modifier = Modifier.padding(top = 8.dp))
             }
         }
         Spacer(Modifier.height(22.dp))
