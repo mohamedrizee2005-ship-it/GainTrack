@@ -96,7 +96,8 @@ class ReminderScheduler(private val context: Context) {
     fun scheduleAllDefaultReminders() {
         scheduleWorkoutReminder(19, 30)
         scheduleSundayCheckInReminder(19, 0)
-        scheduleNutritionReminder(20, 0)
+        // Workout-only v4: stop old nutrition reminders when upgrading.
+        cancelReminder(ReminderBroadcastReceiver.ACTION_NUTRITION_REMINDER, 103)
     }
 
     fun cancelReminder(action: String, requestCode: Int) {
