@@ -24,6 +24,16 @@ class GainTrackApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // V4 no longer uses AI. Remove the encrypted secret left by older releases.
+        deleteSharedPreferences("gaintrack_gemini_secret")
+        try {
+            val store = java.security.KeyStore.getInstance("AndroidKeyStore")
+            store.load(null)
+            val alias = "gaintrack_gemini_local_aes_v1"
+            if (store.containsAlias(alias)) store.deleteEntry(alias)
+        } catch (_: Exception) {
+            // Keystore may be unavailable on some devices; the unused secret is not accessed.
+        }
         reminderScheduler.scheduleAllDefaultReminders()
     }
 }
