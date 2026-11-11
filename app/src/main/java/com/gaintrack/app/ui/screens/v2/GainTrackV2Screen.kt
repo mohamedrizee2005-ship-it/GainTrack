@@ -261,7 +261,7 @@ private fun HomeTab(
         }
         Spacer(Modifier.height(22.dp))
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("TODAY'S SESSION", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+            Text(if (isRestDay) "RECOVERY DAY" else "TODAY'S SESSION", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
             Text("THIS WEEK $weekCount / 4", color = Lime, fontSize = 11.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(10.dp))
@@ -379,7 +379,7 @@ private fun PlanTab(selectedDay: Int, doneSet: Set<String>, onSelect: (Int) -> U
         }
         Spacer(Modifier.height(10.dp))
         Text("Progression rule", color = White, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-        Text("Start with the easiest variation that lets you complete every rep with good form. When you reach the top of the rep range on every set comfortably, move to a slightly harder variation or slow the lowering phase. Finish most sets with about 2–3 good reps still possible; do not force painful reps.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
+        Text("Start with 1–3 clean reps in reserve. Add reps first; when all sets reach the top of the range twice, choose a harder variation or apply stronger self-resistance. Do not train through sharp pain.", color = Muted, fontSize = 12.sp, lineHeight = 18.sp)
         Spacer(Modifier.height(20.dp))
     }
 }
@@ -486,24 +486,32 @@ private fun ProgressTab(doneSet: Set<String>, weekCount: Int, onBackHome: () -> 
         Spacer(Modifier.height(14.dp))
         Surface(shape = RoundedCornerShape(22.dp), color = Panel, modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(18.dp)) {
-                Text("12-WEEK STRENGTH JOURNEY", color = Aqua, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                Text("YOUR LAST 12 WEEKS", color = Aqua, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                 Spacer(Modifier.height(12.dp))
                 repeat(12) { week ->
+                    val startOfWeek = Calendar.getInstance().apply {
+                        firstDayOfWeek = Calendar.MONDAY
+                        val daysSinceMonday = (get(Calendar.DAY_OF_WEEK) + 5) % 7
+                        add(Calendar.DAY_OF_YEAR, -daysSinceMonday - 7 * week)
+                        set(Calendar.HOUR_OF_DAY, 0)
+                        set(Calendar.MINUTE, 0)
+                        set(Calendar.SECOND, 0)
+                        set(Calendar.MILLISECOND, 0)
+                    }
+                    val endOfWeek = (startOfWeek.clone() as Calendar).apply {
+                        add(Calendar.DAY_OF_YEAR, 7)
+                    }
+                    val format = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                     val count = doneSet.count { key ->
-                        val date = key.substringBefore("|")
-                        val parsed = runCatching { SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(date) }.getOrNull()
-                        if (parsed == null) false else {
-                            val cal = Calendar.getInstance().apply { time = parsed }
-                            val now = Calendar.getInstance()
-                            cal.get(Calendar.WEEK_OF_YEAR) == now.get(Calendar.WEEK_OF_YEAR) && cal.get(Calendar.YEAR) == now.get(Calendar.YEAR) && week == 0
-                        }
+                        val date = runCatching { format.parse(key.substringBefore("|")) }.getOrNull()
+                        date != null && !date.before(startOfWeek.time) && date.before(endOfWeek.time)
                     }
                     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-                        Text("W${week + 1}", color = Muted, fontSize = 10.sp, modifier = Modifier.width(32.dp))
+                        Text(if (week == 0) "Now" else "-$week", color = Muted, fontSize = 10.sp, modifier = Modifier.width(32.dp))
                         Box(Modifier.weight(1f).height(7.dp).clip(CircleShape).background(Panel2)) {
-                            if (week == 0 && count > 0) Box(Modifier.fillMaxWidth((count / 4f).coerceIn(0f, 1f)).fillMaxHeight().background(Lime))
+                            if (count > 0) Box(Modifier.fillMaxWidth((count / 4f).coerceIn(0f, 1f)).fillMaxHeight().background(Lime))
                         }
-                        Text(if (week == 0) "$count/4" else "—", color = Muted, fontSize = 10.sp, modifier = Modifier.width(34.dp))
+                        Text("$count/4", color = Muted, fontSize = 10.sp, modifier = Modifier.width(34.dp))
                     }
                 }
                 Text("Your completed sessions are saved on this phone. The weekly view starts filling as you train.", color = Muted, fontSize = 11.sp, lineHeight = 16.sp, modifier = Modifier.padding(top = 10.dp))
