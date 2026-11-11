@@ -96,8 +96,7 @@ abstract class GainTrackDatabase : RoomDatabase() {
                     database.workoutDao().insertExercises(exercises)
                 }
 
-                // Prepopulate Food Items
-                database.nutritionDao().insertFoodItems(PrepopulatedData.defaultFoodItems)
+                // Legacy nutrition tables are retained solely to preserve v3 upgrade compatibility.
 
                 // Prepopulate Initial Weight Logs
                 for (log in PrepopulatedData.getInitialWeightLogs()) {
